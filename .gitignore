@@ -1,6 +1,13 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
+<<<<<<< ours
+/.idea
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+=======
 /node_modules
 /.pnp
 .pnp.*
@@ -9,6 +16,7 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+>>>>>>> theirs
 
 # testing
 /coverage
@@ -28,10 +36,16 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+<<<<<<< ours
+
+# local env files
+.env*.local
+=======
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+>>>>>>> theirs
 
 # vercel
 .vercel

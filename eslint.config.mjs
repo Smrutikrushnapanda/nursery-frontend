@@ -1,3 +1,18 @@
+<<<<<<< ours
+// eslint.config.mjs
+import { defineConfig, globalIgnores } from 'eslint/config'
+import nextConfig from 'eslint-config-next/core-web-vitals'
+
+export default defineConfig([
+  ...nextConfig,
+  globalIgnores([
+    '.next/**',
+    'out/**',
+    'build/**',
+    'next-env.d.ts'
+  ]),
+])
+=======
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
@@ -16,3 +31,4 @@ const eslintConfig = defineConfig([
 ]);
 
 export default eslintConfig;
+>>>>>>> theirs
