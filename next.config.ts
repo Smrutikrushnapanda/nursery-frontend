@@ -2,7 +2,6 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-<<<<<<< ours
   webpack(config) {
     config.module.rules.push({
       test: /\.svg$/,
@@ -20,8 +19,6 @@ const nextConfig: NextConfig = {
       },
     },
   
-=======
->>>>>>> theirs
 };
 
 export default nextConfig;
