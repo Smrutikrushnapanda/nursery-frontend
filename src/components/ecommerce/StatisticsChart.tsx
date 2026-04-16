@@ -1,101 +1,58 @@
-"use client";
-import { useEffect, useRef } from "react";
-import dynamic from "next/dynamic";
-import { ApexOptions } from "apexcharts";
-import flatpickr from "flatpickr";
-import ChartTab from "../common/ChartTab";
-import { CalenderIcon } from "../../icons";
+"use client"
 
-const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
+import dynamic from "next/dynamic"
+import { ApexOptions } from "apexcharts"
+import { monthlyRestocks, monthlySoldPlants } from "./nurseryData"
+
+const Chart = dynamic(() => import("react-apexcharts"), { ssr: false })
 
 export default function StatisticsChart() {
-  const datePickerRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!datePickerRef.current) return;
-
-    const today = new Date();
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(today.getDate() - 6);
-
-    const fp = flatpickr(datePickerRef.current, {
-      mode: "range",
-      static: true,
-      monthSelectorType: "static",
-      dateFormat: "M d",
-      defaultDate: [sevenDaysAgo, today],
-      clickOpens: true,
-      prevArrow:
-        '<svg class="stroke-current" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.5 15L7.5 10L12.5 5" stroke="" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-      nextArrow:
-        '<svg class="stroke-current" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7.5 15L12.5 10L7.5 5" stroke="" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    });
-
-    return () => {
-      if (!Array.isArray(fp)) {
-        fp.destroy();
-      }
-    };
-  }, []);
-
   const options: ApexOptions = {
     legend: {
-      show: false, // Hide legend
+      show: true,
       position: "top",
       horizontalAlign: "left",
+      fontFamily: "Outfit, sans-serif",
     },
-    colors: ["#465FFF", "#9CB9FF"], // Define line colors
+    colors: ["#346739", "#E9C46A"],
     chart: {
       fontFamily: "Outfit, sans-serif",
-      height: 310,
-      type: "line", // Set the chart type to 'line'
+      height: 320,
+      type: "area",
       toolbar: {
-        show: false, // Hide chart toolbar
+        show: false,
       },
     },
     stroke: {
-      curve: "straight", // Define the line style (straight, smooth, or step)
-      width: [2, 2], // Line width for each dataset
+      curve: "smooth",
+      width: [3, 3],
     },
-
     fill: {
       type: "gradient",
       gradient: {
-        opacityFrom: 0.55,
-        opacityTo: 0,
+        opacityFrom: 0.35,
+        opacityTo: 0.04,
       },
     },
     markers: {
-      size: 0, // Size of the marker points
-      strokeColors: "#fff", // Marker border color
-      strokeWidth: 2,
+      size: 0,
       hover: {
-        size: 6, // Marker size on hover
+        size: 6,
       },
     },
     grid: {
-      xaxis: {
-        lines: {
-          show: false, // Hide grid lines on x-axis
-        },
-      },
-      yaxis: {
-        lines: {
-          show: true, // Show grid lines on y-axis
-        },
-      },
+      borderColor: "#E5E7EB",
+      strokeDashArray: 4,
     },
     dataLabels: {
-      enabled: false, // Disable data labels
+      enabled: false,
     },
     tooltip: {
-      enabled: true, // Enable tooltip
-      x: {
-        format: "dd MMM yyyy", // Format for x-axis tooltip
+      y: {
+        formatter: (value: number) => `${value} plants`,
       },
     },
     xaxis: {
-      type: "category", // Category-based x-axis
       categories: [
         "Jan",
         "Feb",
@@ -111,70 +68,70 @@ export default function StatisticsChart() {
         "Dec",
       ],
       axisBorder: {
-        show: false, // Hide x-axis border
+        show: false,
       },
       axisTicks: {
-        show: false, // Hide x-axis ticks
-      },
-      tooltip: {
-        enabled: false, // Disable tooltip for x-axis points
+        show: false,
       },
     },
     yaxis: {
       labels: {
         style: {
-          fontSize: "12px", // Adjust font size for y-axis labels
-          colors: ["#6B7280"], // Color of the labels
-        },
-      },
-      title: {
-        text: "", // Remove y-axis title
-        style: {
-          fontSize: "0px",
+          fontSize: "12px",
+          colors: ["#6B7280"],
         },
       },
     },
-  };
+  }
 
   const series = [
     {
-      name: "Sales",
-      data: [180, 190, 170, 160, 175, 165, 170, 205, 230, 210, 240, 235],
+      name: "Sold",
+      data: monthlySoldPlants,
     },
     {
-      name: "Revenue",
-      data: [40, 30, 50, 40, 55, 40, 70, 100, 110, 120, 150, 140],
+      name: "Restocked",
+      data: monthlyRestocks,
     },
-  ];
+  ]
+
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white px-5 pb-5 pt-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6">
-      <div className="flex flex-col gap-5 mb-6 sm:flex-row sm:justify-between">
-        <div className="w-full">
+    <div className="rounded-2xl border border-bordergray-200 bg-white px-5 pb-5 pt-5 dark:border-bordergray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6">
+      <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div>
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-            Statistics
+            Inventory Flow
           </h3>
-          <p className="mt-1 text-gray-500 text-theme-sm dark:text-gray-400">
-            Target you've set for each month
+          <p className="mt-1 text-theme-sm text-gray-500 dark:text-gray-400">
+            Monthly comparison of plants sold and plants added back into stock.
           </p>
         </div>
-        <div className="flex items-center gap-3 sm:justify-end">
-          <ChartTab />
-          <div className="relative inline-flex items-center">
-            <CalenderIcon className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 lg:left-3 lg:top-1/2 lg:translate-x-0 lg:-translate-y-1/2  text-gray-500 dark:text-gray-400 pointer-events-none z-10" />
-            <input
-              ref={datePickerRef}
-              className="h-10 w-10 lg:w-40 lg:h-auto  lg:pl-10 lg:pr-3 lg:py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium text-transparent lg:text-gray-700 outline-none dark:border-gray-700 dark:bg-gray-800 dark:lg:text-gray-300 cursor-pointer"
-              placeholder="Select date range"
-            />
+
+        <div className="flex gap-3">
+          <div className="rounded-xl bg-gray-50 px-4 py-3 dark:bg-white/5">
+            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+              Peak sales month
+            </p>
+            <p className="text-sm font-semibold text-gray-800 dark:text-white/90">
+              December, 259 plants
+            </p>
+          </div>
+          <div className="rounded-xl bg-gray-50 px-4 py-3 dark:bg-white/5">
+            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+              Current trend
+            </p>
+            <p className="text-sm font-semibold text-success-700 dark:text-success-400">
+              Sales are outpacing restocks
+            </p>
           </div>
         </div>
       </div>
 
       <div className="max-w-full overflow-x-auto custom-scrollbar">
-        <div className="min-w-[1000px] xl:min-w-full">
-          <Chart options={options} series={series} type="area" height={310} />
+        <div className="min-w-[900px] xl:min-w-full">
+          <Chart options={options} series={series} type="area" height={320} />
         </div>
       </div>
     </div>
-  );
+  )
 }

@@ -18,6 +18,7 @@ import {
   UserCircleIcon,
 } from "@/icons/index";
 import SidebarWidget from "./SidebarWidget";
+import { Box, BoxIcon, ListOrdered, Receipt, ReceiptPoundSterlingIcon, Settings, ShipIcon, Truck } from "lucide-react";
 
 type NavItem = {
   name: string;
@@ -34,34 +35,45 @@ const navItems: NavItem[] = [
     // subItems: [{ name: "Ecommerce", path: "/", pro: false }],
   },
   {
-    icon: <CalenderIcon />,
-    name: "Orders",
-    path: "/calendar",
+    icon: <BoxIcon />,
+    name: "Master",
+    path: "/master",
+    subItems: [
+      { name: "Products", path: "/master", pro: false },
+      { name: "Categories", path: "/master/categories", pro: false },
+      
+    ]
   },
   {
-    icon: <UserCircleIcon />,
-    name: "Inventory",
-    path: "/inventory",
+    icon: <Settings />,
+    name: "Workflow",
+    path: "/workflow",
+    subItems: [
+      { name: "Stock in", path: "/workflow", pro: false },
+      { name: "Scan sale (POS)", path: "/workflow/scansale", pro: false },
+      { name: "Orders", path: "/workflow/orders", pro: false },
+    ]
+  },
+  {
+    icon: <Settings />,
+    name: "Reports",
+    path: "/reports",
+    subItems: [
+      { name: "Sales Report", path: "/reports", pro: false },
+      { name: "Stock Report", path: "/workflow/stock-report", pro: false },
+      { name: "Low Stock", path: "/workflow/low-stock", pro: false },
+    ]
+  },
+  {
+    icon: <Settings />,
+    name: "Settings",
+    path: "/settings",
+    subItems: [
+      { name: "Profile", path: "/settings", pro: false },
+      { name: "Payment Settings", path: "/settings/payment-settings", pro: false },
+    ]
   },
 
-  {
-    name: "Forms",
-    icon: <ListIcon />,
-    subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],
-  },
-  {
-    name: "Tables",
-    icon: <TableIcon />,
-    subItems: [{ name: "Basic Tables", path: "/basic-tables", pro: false }],
-  },
-  {
-    name: "Pages",
-    icon: <PageIcon />,
-    subItems: [
-      { name: "Blank Page", path: "/blank", pro: false },
-      { name: "404 Error", path: "/error-404", pro: false },
-    ],
-  },
 ];
 
 const othersItems: NavItem[] = [
@@ -136,7 +148,7 @@ const AppSidebar: React.FC = () => {
                   className={`ml-auto w-5 h-5 transition-transform duration-200  ${
                     openSubmenu?.type === menuType &&
                     openSubmenu?.index === index
-                      ? "rotate-180 text-brand-500"
+                      ? "rotate-180 text-white"
                       : ""
                   }`}
                 />
@@ -291,7 +303,7 @@ const AppSidebar: React.FC = () => {
 
   return (
     <aside
-      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
+      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-background text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-border
         ${
           isExpanded || isMobileOpen
             ? "w-[290px]"
@@ -356,26 +368,8 @@ const AppSidebar: React.FC = () => {
               </h2>
               {renderMenuItems(navItems, "main")}
             </div>
-
-            <div className="">
-              <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-                  !isExpanded && !isHovered
-                    ? "lg:justify-center"
-                    : "justify-start"
-                }`}
-              >
-                {isExpanded || isHovered || isMobileOpen ? (
-                  "Others"
-                ) : (
-                  <HorizontaLDots />
-                )}
-              </h2>
-              {renderMenuItems(othersItems, "others")}
-            </div>
           </div>
         </nav>
-        {isExpanded || isHovered || isMobileOpen ? <SidebarWidget /> : null}
       </div>
     </aside>
   );

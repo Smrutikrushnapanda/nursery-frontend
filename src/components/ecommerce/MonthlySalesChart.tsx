@@ -1,23 +1,21 @@
-"use client";
-import { ApexOptions } from "apexcharts";
-import dynamic from "next/dynamic";
-import { MoreDotIcon } from "@/icons";
-import { DropdownItem } from "../ui/dropdown/DropdownItem";
-import { useState } from "react";
-import { Dropdown } from "../ui/dropdown/Dropdown";
+"use client"
 
-// Dynamically import the ReactApexChart component
+import { ApexOptions } from "apexcharts"
+import dynamic from "next/dynamic"
+import { weeklySalesMix } from "./nurseryData"
+
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
-});
+})
 
 export default function MonthlySalesChart() {
   const options: ApexOptions = {
-    colors: ["#465fff"],
+    colors: ["#346739", "#A7C957"],
     chart: {
       fontFamily: "Outfit, sans-serif",
       type: "bar",
-      height: 180,
+      height: 260,
+      stacked: false,
       toolbar: {
         show: false,
       },
@@ -25,8 +23,8 @@ export default function MonthlySalesChart() {
     plotOptions: {
       bar: {
         horizontal: false,
-        columnWidth: "39%",
-        borderRadius: 5,
+        columnWidth: "42%",
+        borderRadius: 6,
         borderRadiusApplication: "end",
       },
     },
@@ -34,25 +32,15 @@ export default function MonthlySalesChart() {
       enabled: false,
     },
     stroke: {
-      show: true,
-      width: 4,
-      colors: ["transparent"],
+      show: false,
+    },
+    legend: {
+      position: "top",
+      horizontalAlign: "left",
+      fontFamily: "Outfit, sans-serif",
     },
     xaxis: {
-      categories: [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ],
+      categories: weeklySalesMix.map((item) => item.day),
       axisBorder: {
         show: false,
       },
@@ -60,95 +48,61 @@ export default function MonthlySalesChart() {
         show: false,
       },
     },
-    legend: {
-      show: true,
-      position: "top",
-      horizontalAlign: "left",
-      fontFamily: "Outfit",
-    },
-    yaxis: {
-      title: {
-        text: undefined,
-      },
-    },
     grid: {
-      yaxis: {
-        lines: {
-          show: true,
-        },
-      },
+      borderColor: "#E5E7EB",
+      strokeDashArray: 4,
     },
-    fill: {
-      opacity: 1,
-    },
-
     tooltip: {
-      x: {
-        show: false,
-      },
       y: {
-        formatter: (val: number) => `${val}`,
+        formatter: (value: number) => `${value} plants`,
       },
     },
-  };
+  }
+
   const series = [
     {
-      name: "Sales",
-      data: [168, 385, 201, 298, 187, 195, 291, 110, 215, 390, 280, 112],
+      name: "Sold",
+      data: weeklySalesMix.map((item) => item.sold),
     },
-  ];
-  const [isOpen, setIsOpen] = useState(false);
-
-  function toggleDropdown() {
-    setIsOpen(!isOpen);
-  }
-
-  function closeDropdown() {
-    setIsOpen(false);
-  }
+    {
+      name: "Restocked",
+      data: weeklySalesMix.map((item) => item.restocked),
+    },
+  ]
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-5 pt-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-          Monthly Sales
-        </h3>
+    <div className="overflow-hidden rounded-2xl border border-bordergray-200 bg-white px-5 pt-5 dark:border-bordergray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
+            Weekly Plant Movement
+          </h3>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Compare how many plants were sold versus restocked over the last 7
+            days.
+          </p>
+        </div>
 
-        <div className="relative inline-block">
-          <button onClick={toggleDropdown} className="dropdown-toggle">
-            <MoreDotIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" />
-          </button>
-          <Dropdown
-            isOpen={isOpen}
-            onClose={closeDropdown}
-            className="w-40 p-2"
-          >
-            <DropdownItem
-              onItemClick={closeDropdown}
-              className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
-            >
-              View More
-            </DropdownItem>
-            <DropdownItem
-              onItemClick={closeDropdown}
-              className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
-            >
-              Delete
-            </DropdownItem>
-          </Dropdown>
+        <div className="rounded-xl bg-success-50 px-3 py-2 text-right dark:bg-success-500/10">
+          <p className="text-xs font-medium uppercase tracking-wide text-success-700 dark:text-success-400">
+            Best Day
+          </p>
+          <p className="text-sm font-semibold text-success-800 dark:text-success-300">
+            Saturday, 38 sold
+          </p>
         </div>
       </div>
 
       <div className="max-w-full overflow-x-auto custom-scrollbar">
-        <div className="-ml-5 min-w-[650px] xl:min-w-full pl-2">
+        <div className="min-w-[680px] pl-1 pt-4 xl:min-w-full">
           <ReactApexChart
             options={options}
             series={series}
             type="bar"
-            height={180}
+            height={260}
           />
         </div>
       </div>
     </div>
-  );
+  )
 }
