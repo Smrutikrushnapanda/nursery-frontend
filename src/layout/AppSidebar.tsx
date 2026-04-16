@@ -18,7 +18,9 @@ import {
   UserCircleIcon,
 } from "@/icons/index";
 import SidebarWidget from "./SidebarWidget";
-import { Box, BoxIcon, ListOrdered, Receipt, ReceiptPoundSterlingIcon, Settings, ShipIcon, Truck } from "lucide-react";
+import { BoxIcon, Settings, BarChart2, Workflow } from "lucide-react";
+import { masterApis } from "@/utils/api/api";
+import { useAppStore } from "@/utils/store/store";
 
 type NavItem = {
   name: string;
@@ -27,54 +29,7 @@ type NavItem = {
   subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
 };
 
-const navItems: NavItem[] = [
-  {
-    icon: <GridIcon />,
-    name: "Dashboard",
-    path: "/",
-    // subItems: [{ name: "Ecommerce", path: "/", pro: false }],
-  },
-  {
-    icon: <BoxIcon />,
-    name: "Master",
-    path: "/master",
-    subItems: [
-      { name: "Products", path: "/master", pro: false },
-      { name: "Categories", path: "/master/categories", pro: false },
 
-    ]
-  },
-  {
-    icon: <Settings />,
-    name: "Workflow",
-    path: "/workflow",
-    subItems: [
-      { name: "Stock in", path: "/workflow", pro: false },
-      { name: "Scan sale (POS)", path: "/workflow/scansale", pro: false },
-      { name: "Orders", path: "/workflow/orders", pro: false },
-    ]
-  },
-  {
-    icon: <Settings />,
-    name: "Reports",
-    path: "/reports",
-    subItems: [
-      { name: "Sales Report", path: "/reports", pro: false },
-      { name: "Stock Report", path: "/workflow/stock-report", pro: false },
-      { name: "Low Stock", path: "/workflow/low-stock", pro: false },
-    ]
-  },
-  {
-    icon: <Settings />,
-    name: "Settings",
-    path: "/settings",
-    subItems: [
-      { name: "Profile", path: "/settings", pro: false },
-      { name: "Payment Settings", path: "/settings/payment-settings", pro: false },
-    ]
-  },
-
-];
 
 const othersItems: NavItem[] = [
   {
@@ -110,6 +65,55 @@ const othersItems: NavItem[] = [
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const pathname = usePathname();
+  const setMenu = useAppStore((state) => state.setMenu);
+  const menuData = useAppStore((state) => state.menu);
+  const { getMenu } = masterApis;
+
+  //getting menus
+  const fetchMenus = async () => {
+    const response = await getMenu();
+    setMenu(response);
+  }
+
+  useEffect(() => {
+    fetchMenus();
+  }, [])
+
+  const getIconForMenu = (menuName: string) => {
+    switch (menuName) {
+      case 'Dashboard': return <GridIcon />;
+      case 'Master': return <BoxIcon />;
+      case 'Workflow': return <Workflow />;
+      case 'Report': return <BarChart2 />;
+      default: return <Settings />;
+    }
+  };
+
+  const navItems: NavItem[] = React.useMemo(() => {
+    if (!menuData || !Array.isArray(menuData)) return [];
+
+    const parents = menuData.filter((item: any) => item.parentId === null).sort((a: any, b: any) => a.displayOrder - b.displayOrder);
+    
+    return parents.map((parent: any) => {
+      const children = menuData.filter((item: any) => item.parentId === parent.id).sort((a: any, b: any) => a.displayOrder - b.displayOrder);
+      
+      const navItem: NavItem = {
+        name: parent.menuName,
+        icon: getIconForMenu(parent.menuName),
+        path: parent.path,
+      };
+
+      if (children.length > 0) {
+        navItem.subItems = children.map((child: any) => ({
+          name: child.menuName,
+          path: child.path,
+          pro: false
+        }));
+      }
+
+      return navItem;
+    });
+  }, [menuData]);
 
   const renderMenuItems = (
     navItems: NavItem[],
@@ -121,7 +125,7 @@ const AppSidebar: React.FC = () => {
           {nav.subItems ? (
             <button
               onClick={() => handleSubmenuToggle(index, menuType)}
-              className={`menu-item group  ${openSubmenu?.type === menuType && openSubmenu?.index === index
+              className={`menu-item group  ${nav.subItems?.some((subItem) => isActive(subItem.path))
                 ? "menu-item-active"
                 : "menu-item-inactive"
                 } cursor-pointer ${!isExpanded && !isHovered
@@ -130,7 +134,7 @@ const AppSidebar: React.FC = () => {
                 }`}
             >
               <span
-                className={` ${openSubmenu?.type === menuType && openSubmenu?.index === index
+                className={` ${nav.subItems?.some((subItem) => isActive(subItem.path))
                   ? "menu-item-icon-active"
                   : "menu-item-icon-inactive"
                   }`}
@@ -264,7 +268,7 @@ const AppSidebar: React.FC = () => {
     if (!submenuMatched) {
       setOpenSubmenu(null);
     }
-  }, [pathname, isActive]);
+  }, [pathname, isActive, navItems]);
 
   useEffect(() => {
     // Set the height of the submenu items when the submenu is opened
