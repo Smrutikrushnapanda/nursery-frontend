@@ -1,5 +1,6 @@
 "use client";
 
+import AdminProtectedRoute from "@/components/ProtectedRoutes/AdminProtectedRoute";
 import { useSidebar } from "@/context/SidebarContext";
 import AppHeader from "@/layout/AppHeader";
 import AppSidebar from "@/layout/AppSidebar";
@@ -21,8 +22,9 @@ export default function AdminLayout({
     : "lg:ml-[90px]";
 
   return (
-    <div className="min-h-screen xl:flex">
-      {/* Sidebar and Backdrop */}
+    <div className="min-h-screen xl:flex bg-background">
+      <AdminProtectedRoute>
+        {/* Sidebar and Backdrop */}
       <AppSidebar />
       <Backdrop />
       {/* Main Content Area */}
@@ -34,6 +36,7 @@ export default function AdminLayout({
         {/* Page Content */}
         <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">{children}</div>
       </div>
+      </AdminProtectedRoute>
     </div>
   );
 }

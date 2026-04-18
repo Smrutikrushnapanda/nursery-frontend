@@ -9,18 +9,338 @@ export const api = axios.create({
     },
 });
 
+const getApiError = (error: any) => {
+    const responseData = error?.response?.data;
 
-//get all the sidebar menus
-export const masterApis = {
-    getMenu : async()=>{
-    try {
+    if (typeof responseData?.message === "string") {
+        return new Error(responseData.message);
+    }
 
-        const {data} = await api.get("/master/menus");
+    if (Array.isArray(responseData?.message)) {
+        return new Error(responseData.message.join(", "));
+    }
 
-        return data;
+    return error;
+};
 
-    } catch (error: any) {
-        console.log(error.message);
+
+export const authApis = {
+
+    register: async (formData: any) => {
+        try {
+
+            const { data } = await api.post("/auth/register", formData);
+
+            return data
+
+        } catch (error: any) {
+            throw getApiError(error);
+        }
+    },
+
+    login: async (formData: any) => {
+        try {
+
+            const { data } = await api.post("/auth/login", formData);
+
+            return data
+        } catch (error: any) {
+            throw getApiError(error);
+        }
+    },
+
+    logout: async () => {
+        try {
+            const { data } = await api.post("/auth/logout", {
+                withCredentials: true
+            });
+
+            return data
+        } catch (error: any) {
+            throw getApiError(error);
+        }
+    },
+
+    getBusinessTypes: async () => {
+        try {
+            const { data } = await api.get("/register/business-types");
+
+            return data;
+        } catch (error: any) {
+            throw getApiError(error);
+        }
+    },
+
+    getCategories: async () => {
+        try {
+
+            const { data } = await api.get("/register/categories");
+
+            return data;
+
+        } catch (error: any) {
+            throw getApiError(error);
+        }
+    },
+
+    getSubCategories: async (id: number) => {
+        try {
+            const { data } = await api.get("/register/sub-categories?categoryId=" + id)
+
+            return data
+        } catch (error: any) {
+            throw getApiError(error);
+        }
+    }
+
+}
+
+export const organizationApis = {
+    getOrganizationData: async (id: string) => {
+        try {
+
+            const { data } = await api.get(`/organizations/${id}`);
+
+            return data;
+
+        } catch (error: any) {
+            throw getApiError(error);
+        }
+    },
+
+    updateOrganization: async (id: string, newData: any) => {
+        try {
+            const { data } = await api.patch(`organizations/${id}`, newData);
+
+            return data
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    deleteOrganization: async (id: string) => {
+        try {
+            const { data } = await api.delete(`/organizations/${id}`);
+
+            return data
+        } catch (error) {
+            throw getApiError(error);
+        }
     }
 }
+
+export const masterApis = {
+    //Master apis for menus
+    getMenu: async () => {
+        try {
+
+            const { data } = await api.get("/master/menus");
+
+            return data;
+
+        } catch (error: any) {
+            throw getApiError(error);
+        }
+    },
+
+    createMenu : async (menu: any) => {
+        try {
+
+            const {data} = await api.post("/master/menus", menu, {
+                withCredentials: true
+            });
+
+            return data
+
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    getMenuById: async (id: number)=>{
+        try {
+            const {data} = await api.get(`/master/menus/${id}`, {
+                withCredentials: true
+            });
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    updateMenu: async(id: number, newMenu: any)=>{
+        try {
+            const {data} = await api.put(`/master/menus/${id}`, newMenu, {
+                withCredentials: true
+            });
+
+            return data
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    deleteMenu: async(id: number)=>{
+        try {
+            const {data} = await api.delete(`/master/menus/${id}`, {
+                withCredentials: true
+            });
+
+            return data
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    //Master apis for plants
+    getAllPlanst: async()=>{
+        try {
+            const {data} = await api.get("/master/plant");
+
+            return data
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    getPlantById: async(id: number)=>{
+        try {
+            const {data} = await api.get(`/master/plant/${id}`);
+
+            return data
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    createPlant: async(plant: any)=>{
+        try {
+            
+            const {data} = await api.post("/master/plant", plant);
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    updatePlant: async(id: number, newPlant: any)=>{
+        try {
+
+            const {data} = await api.patch(`/master/plant/${id}`, newPlant);
+
+            return data
+
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+    
+    deletePlant: async(id: number)=>{
+        try {
+            const {data} = await api.delete(`/master/plant/${id}`);
+
+            return data
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    //Master api plant variants
+    getAllPlantVariants: async()=>{
+        try {
+            const {data} = await api.get("/master/plant-variant");
+
+            return data
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    getPlantVariantById: async(id: number)=>{
+        try {
+            const {data} = await api.get(`/master/plant-variant/${id}`);
+
+            return data
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    createPlantVariant : async(variantData: any)=>{
+        try {
+
+            const {data} = await api.post("master/plant-variant", variantData);
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    updatePlantVariant: async(id: number, newVariant: any)=>{
+        try {
+            const {data} = await api.patch(`/master/plant-variant/${id}`, newVariant);
+
+            return data
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    deletePlantVariant: async(id: number)=>{
+        try {
+            const {data} = await api.delete(`/master/plant-variant/${id}`);
+
+            return data
+        } catch (error) {
+            throw getApiError(error);
+        }
+    }
+}
+
+export const inventoryApis = {
+
+    getStockById: async(id: number)=>{
+      try {
+        const {data} = await api.get(`inventory/${id}`);
+
+        return data;
+      } catch (error) {
+        throw getApiError(error);
+      }  
+    },
+    addStocks: async(stockData: any)=>{
+        try {
+
+            const {data} = await api.post("inventory/add-stock", stockData)
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    removeStock : async(stockData: any)=>{
+        try {
+
+            const {data} = await api.post("inventory/remove-stock", stockData)
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    deadStock: async(stockData: any)=>{
+        try {
+
+            const {data} = await api.post("inventory/dead-stock", stockData)
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    }
 }

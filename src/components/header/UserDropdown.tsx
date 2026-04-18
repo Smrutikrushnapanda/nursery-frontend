@@ -4,14 +4,26 @@ import Link from "next/link";
 import React, { useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
+import { useAppStore } from "@/utils/store/store";
+import { useRouter } from "next/navigation";
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
+  const {setLoading, setOrganization} = useAppStore()
+  const router = useRouter()
 
 function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
   e.stopPropagation();
   setIsOpen((prev) => !prev);
 }
+
+    const handleSignOut = ()=>{
+      setLoading(true)
+      setOrganization(null)
+      setLoading(false)
+      router.push("/home")
+    }
+  
 
   function closeDropdown() {
     setIsOpen(false);
@@ -144,8 +156,8 @@ function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
             </DropdownItem>
           </li>
         </ul>
-        <Link
-          href="/signin"
+        <button
+        onClick={handleSignOut}
           className="flex items-center gap-3 px-3 py-2 mt-3 font-medium  rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 text-red-500 dark:hover:bg-white/5 dark:hover:text-gray-300"
         >
           <svg
@@ -164,7 +176,7 @@ function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
             />
           </svg>
           Sign out
-        </Link>
+        </button>
       </Dropdown>
     </div>
   );
