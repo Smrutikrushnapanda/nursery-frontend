@@ -2,105 +2,127 @@
 
 import { ApexOptions } from "apexcharts"
 import dynamic from "next/dynamic"
-import { weeklySalesMix } from "./nurseryData"
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
 })
 
-export default function MonthlySalesChart() {
+export default function TodaySalesChart() {
+  const hours = ["9AM", "11AM", "1PM", "3PM", "5PM", "7PM"]
+  const salesData = [120, 240, 180, 320, 260, 400]
+  const totalSales = salesData.reduce((acc, curr) => acc + curr, 0)
+  const peakIndex = salesData.indexOf(Math.max(...salesData))
+
   const options: ApexOptions = {
-    colors: ["#346739", "#A7C957"],
+    colors: ["#346739"],
     chart: {
       fontFamily: "Outfit, sans-serif",
       type: "bar",
       height: 260,
-      stacked: false,
-      toolbar: {
-        show: false,
-      },
+      toolbar: { show: false },
     },
     plotOptions: {
       bar: {
         horizontal: false,
-        columnWidth: "42%",
-        borderRadius: 6,
+        columnWidth: "45%",
+        borderRadius: 8,
         borderRadiusApplication: "end",
       },
     },
-    dataLabels: {
-      enabled: false,
-    },
-    stroke: {
-      show: false,
-    },
-    legend: {
-      position: "top",
-      horizontalAlign: "left",
-      fontFamily: "Outfit, sans-serif",
+    dataLabels: { enabled: false },
+    grid: {
+      borderColor: "#e8e8ca",
+      strokeDashArray: 4,
+      xaxis: { lines: { show: false } },
     },
     xaxis: {
-      categories: weeklySalesMix.map((item) => item.day),
-      axisBorder: {
-        show: false,
-      },
-      axisTicks: {
-        show: false,
+      categories: hours,
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+      labels: {
+        style: {
+          fontSize: "12px",
+          fontWeight: 500,
+          colors: "#475467",
+        },
       },
     },
-    grid: {
-      borderColor: "#E5E7EB",
-      strokeDashArray: 4,
+    yaxis: {
+      labels: {
+        style: {
+          fontSize: "12px",
+          colors: "#475467",
+        },
+        formatter: (value: number) => `₹${value}`,
+      },
     },
     tooltip: {
       y: {
-        formatter: (value: number) => `${value} plants`,
+        formatter: (value: number) => `₹${value.toLocaleString()}`,
+      },
+    },
+    fill: {
+      type: "gradient",
+      gradient: {
+        shade: "light",
+        type: "vertical",
+        shadeIntensity: 0.3,
+        gradientToColors: ["#79ae6f"],
+        opacityFrom: 1,
+        opacityTo: 0.7,
+        stops: [0, 100],
       },
     },
   }
 
-  const series = [
-    {
-      name: "Sold",
-      data: weeklySalesMix.map((item) => item.sold),
-    },
-    {
-      name: "Restocked",
-      data: weeklySalesMix.map((item) => item.restocked),
-    },
-  ]
+  const series = [{ name: "Sales", data: salesData }]
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-bordergray-200 bg-white px-5 pt-5 dark:border-bordergray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-            Weekly Plant Movement
-          </h3>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Compare how many plants were sold versus restocked over the last 7
-            days.
-          </p>
+    <div className="group relative overflow-hidden rounded-2xl bg-white shadow-theme-xs transition-all duration-300 hover:shadow-theme-md">
+      {/* Border layers */}
+      <div className="absolute inset-0 rounded-2xl border-2 border-brand-200/30" />
+      <div className="absolute inset-0.5 rounded-xl border border-brand-200/50" />
+      
+      {/* Top accent */}
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-500 to-brand-300 rounded-t-2xl" />
+
+      <div className="relative p-5 sm:p-6">
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold text-gray-800">Today's Sales</h3>
+          <p className="text-sm text-gray-500">Hourly revenue • Total: ₹{totalSales.toLocaleString()}</p>
         </div>
 
-        <div className="rounded-xl bg-success-50 px-3 py-2 text-right dark:bg-success-500/10">
-          <p className="text-xs font-medium uppercase tracking-wide text-success-700 dark:text-success-400">
-            Best Day
-          </p>
-          <p className="text-sm font-semibold text-success-800 dark:text-success-300">
-            Saturday, 38 sold
-          </p>
+        <div className="max-w-full overflow-x-auto custom-scrollbar">
+          <div className="min-w-[600px] xl:min-w-full">
+            <ReactApexChart
+              options={options}
+              series={series}
+              type="bar"
+              height={260}
+            />
+          </div>
         </div>
-      </div>
 
-      <div className="max-w-full overflow-x-auto custom-scrollbar">
-        <div className="min-w-[680px] pl-1 pt-4 xl:min-w-full">
-          <ReactApexChart
-            options={options}
-            series={series}
-            type="bar"
-            height={260}
-          />
+        <div className="mt-4 flex items-center justify-between border-t border-brand-100 pt-4">
+          <div className="flex items-center gap-4">
+            <div>
+              <p className="text-xs text-gray-500">Peak Hour</p>
+              <p className="text-sm font-semibold text-gray-700">
+                {hours[peakIndex]} • ₹{salesData[peakIndex]}
+              </p>
+            </div>
+            <div className="h-8 w-px bg-brand-200" />
+            <div>
+              <p className="text-xs text-gray-500">Average</p>
+              <p className="text-sm font-semibold text-gray-700">
+                ₹{Math.round(totalSales / salesData.length)}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-success-500" />
+            <span className="text-xs text-gray-500">+12% vs yesterday</span>
+          </div>
         </div>
       </div>
     </div>

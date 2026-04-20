@@ -9,15 +9,16 @@ const AdminProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    if(hasHydrated) return
-    if (!organization ) {
+    if (!hasHydrated) return
+
+    if (!organization) {
       router.replace("/signin");
-    }else{
+    } else {
       setChecking(false)
     }
-  })
+  }, [hasHydrated, organization, router])
 
-  if (!hasHydrated && checking)
+  if (!hasHydrated || checking)
     return <div className='bg-background w-full h-screen'> Loading...</div>
 
   return (

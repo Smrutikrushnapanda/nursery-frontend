@@ -51,7 +51,7 @@ export const authApis = {
 
     logout: async () => {
         try {
-            const { data } = await api.post("/auth/logout", {
+            const { data } = await api.post("/auth/logout", null, {
                 withCredentials: true
             });
 
@@ -91,7 +91,8 @@ export const authApis = {
         } catch (error: any) {
             throw getApiError(error);
         }
-    }
+    },
+    
 
 }
 

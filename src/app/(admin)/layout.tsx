@@ -2,10 +2,11 @@
 
 import AdminProtectedRoute from "@/components/ProtectedRoutes/AdminProtectedRoute";
 import { useSidebar } from "@/context/SidebarContext";
+import { useTheme } from "@/context/ThemeContext";
 import AppHeader from "@/layout/AppHeader";
 import AppSidebar from "@/layout/AppSidebar";
 import Backdrop from "@/layout/Backdrop";
-import React from "react";
+import React, { useEffect } from "react";
 
 export default function AdminLayout({
   children,
@@ -13,6 +14,11 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
+  const { setTheme } = useTheme();
+
+  useEffect(() => {
+    setTheme("light");
+  }, [setTheme]);
 
   // Dynamic class for main content margin based on sidebar state
   const mainContentMargin = isMobileOpen

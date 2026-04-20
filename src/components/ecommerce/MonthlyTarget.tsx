@@ -2,121 +2,130 @@
 
 import { ApexOptions } from "apexcharts"
 import dynamic from "next/dynamic"
-import Badge from "../ui/badge/Badge"
-import { inventoryOverview } from "./nurseryData"
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
 })
 
-export default function MonthlyTarget() {
-  const healthyCount = inventoryOverview.filter(
-    (plant) => plant.status === "Healthy"
-  ).length
-  const stockHealthScore = Math.round(
-    (healthyCount / inventoryOverview.length) * 100
-  )
-  const lowStockPlants = inventoryOverview.filter(
-    (plant) => plant.status !== "Healthy"
-  )
+export default function WeekSalesChart() {
+  const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+  const salesData = [1240, 1890, 2150, 1780, 2420, 3100, 1950]
+  const totalSales = salesData.reduce((acc, curr) => acc + curr, 0)
+  const peakIndex = salesData.indexOf(Math.max(...salesData))
 
-  const series = [stockHealthScore]
   const options: ApexOptions = {
     colors: ["#346739"],
     chart: {
       fontFamily: "Outfit, sans-serif",
-      type: "radialBar",
-      height: 290,
-      sparkline: {
-        enabled: true,
-      },
-    },
-    plotOptions: {
-      radialBar: {
-        startAngle: -90,
-        endAngle: 90,
-        hollow: {
-          size: "78%",
-        },
-        track: {
-          background: "#E5E7EB",
-          strokeWidth: "100%",
-        },
-        dataLabels: {
-          name: {
-            show: false,
-          },
-          value: {
-            offsetY: -18,
-            fontSize: "34px",
-            fontWeight: "700",
-            color: "#1F2937",
-            formatter: (value) => `${Math.round(Number(value))}%`,
-          },
-        },
-      },
+      type: "area",
+      height: 260,
+      toolbar: { show: false },
     },
     stroke: {
-      lineCap: "round",
+      curve: "smooth",
+      width: 3,
+      colors: ["#346739"],
     },
-    labels: ["Healthy stock"],
+    fill: {
+      type: "gradient",
+      gradient: {
+        shade: "light",
+        type: "vertical",
+        shadeIntensity: 0.4,
+        gradientToColors: ["#9fcb98"],
+        opacityFrom: 0.6,
+        opacityTo: 0.1,
+        stops: [0, 100],
+      },
+    },
+    markers: {
+      size: 5,
+      colors: ["#ffffff"],
+      strokeColors: "#346739",
+      strokeWidth: 2,
+      hover: { size: 7 },
+    },
+    dataLabels: { enabled: false },
+    grid: {
+      borderColor: "#e8e8ca",
+      strokeDashArray: 4,
+    },
+    xaxis: {
+      categories: weekDays,
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+      labels: {
+        style: {
+          fontSize: "12px",
+          fontWeight: 500,
+          colors: "#475467",
+        },
+      },
+    },
+    yaxis: {
+      labels: {
+        style: {
+          fontSize: "12px",
+          colors: "#475467",
+        },
+        formatter: (value: number) => `₹${value.toLocaleString()}`,
+      },
+    },
+    tooltip: {
+      y: {
+        formatter: (value: number) => `₹${value.toLocaleString()}`,
+      },
+    },
   }
 
-  return (
-    <div className="rounded-2xl border border-bordergray-200 bg-gray-100 dark:border-bordergray-800 dark:bg-white/[0.03]">
-      <div className="rounded-2xl px-5 pb-8 pt-5 shadow-default bg-background sm:px-6 sm:pt-6">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-              Stock Health
-            </h3>
-            <p className="mt-1 text-theme-sm text-gray-500 dark:text-gray-400">
-              Share of tracked plants currently above their reorder level.
-            </p>
-          </div>
+  const series = [{ name: "Sales", data: salesData }]
 
-          <Badge color="success">Stable</Badge>
+  return (
+    <div className="group relative overflow-hidden rounded-2xl bg-white shadow-theme-xs transition-all duration-300 hover:shadow-theme-md">
+      {/* Border layers */}
+      <div className="absolute inset-0 rounded-2xl border-2 border-brand-200/30" />
+      <div className="absolute inset-0.5 rounded-xl border border-brand-200/50" />
+      
+      {/* Top accent */}
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-500 to-brand-300 rounded-t-2xl" />
+
+      <div className="relative p-5 sm:p-6">
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold text-gray-800">This Week's Sales</h3>
+          <p className="text-sm text-gray-500">Daily revenue • Total: ₹{totalSales.toLocaleString()}</p>
         </div>
 
-        <div className="relative">
-          <div className="max-h-[290px]">
+        <div className="max-w-full overflow-x-auto custom-scrollbar">
+          <div className="min-w-[600px] xl:min-w-full">
             <ReactApexChart
               options={options}
               series={series}
-              type="radialBar"
-              height={290}
+              type="area"
+              height={260}
             />
           </div>
-
-          <span className="absolute left-1/2 top-full -translate-x-1/2 -translate-y-[110%] rounded-full bg-success-50 px-3 py-1 text-xs font-medium text-success-700 dark:bg-success-500/15 dark:text-success-400">
-            {healthyCount} of {inventoryOverview.length} plant lines healthy
-          </span>
         </div>
 
-        <div className="mt-8 space-y-3">
-          {lowStockPlants.map((plant) => (
-            <div
-              key={plant.id}
-              className="flex items-center justify-between rounded-xl border border-bordergray-200 px-4 py-3 dark:border-bordergray-800"
-            >
-              <div>
-                <p className="font-medium text-gray-800 dark:text-white/90">
-                  {plant.name}
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {plant.location}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="font-semibold text-gray-800 dark:text-white/90">
-                  {plant.stock} left
-                </p>
-                <p className="text-sm text-warning-600 dark:text-warning-400">
-                  Reorder at {plant.reorderLevel}
-                </p>
-              </div>
+        <div className="mt-4 flex items-center justify-between border-t border-brand-100 pt-4">
+          <div className="flex items-center gap-4">
+            <div>
+              <p className="text-xs text-gray-500">Best Day</p>
+              <p className="text-sm font-semibold text-gray-700">
+                {weekDays[peakIndex]} • ₹{salesData[peakIndex].toLocaleString()}
+              </p>
             </div>
-          ))}
+            <div className="h-8 w-px bg-brand-200" />
+            <div>
+              <p className="text-xs text-gray-500">Daily Average</p>
+              <p className="text-sm font-semibold text-gray-700">
+                ₹{Math.round(totalSales / salesData.length).toLocaleString()}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-success-500" />
+            <span className="text-xs text-gray-500">+8% vs last week</span>
+          </div>
         </div>
       </div>
     </div>
