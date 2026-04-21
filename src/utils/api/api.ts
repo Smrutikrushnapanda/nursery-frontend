@@ -23,7 +23,7 @@ const getApiError = (error: any) => {
     return error;
 };
 
-
+//Authenticated apis
 export const authApis = {
 
     register: async (formData: any) => {
@@ -57,6 +57,19 @@ export const authApis = {
 
             return data
         } catch (error: any) {
+            throw getApiError(error);
+        }
+    },
+
+    verify: async()=>{
+        try {
+            
+        const { data } = await api.get("/auth/verify", {
+            withCredentials: true
+        });
+
+        return data
+        } catch (error) {
             throw getApiError(error);
         }
     },

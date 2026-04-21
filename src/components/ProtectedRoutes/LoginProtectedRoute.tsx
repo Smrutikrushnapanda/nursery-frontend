@@ -3,25 +3,41 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAppStore } from '@/utils/store/store'
+import { authApis } from '@/utils/api/api'
 
 const LoginProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter()
-  const { organization, hasHydrated } = useAppStore()
+  const { hasHydrated } = useAppStore()
   const [checking, setChecking] = useState(true)
+  const [authorized, setAuthorized] = useState(false)
 
   useEffect(() => {
     if (!hasHydrated) return
 
-    if (organization) {
-      router.replace('/dashboard')
-    } else {
-      setChecking(false)
+    const verifyLoggedin = async () => {
+      try {
+        const response = await authApis.verify()
+        setAuthorized(Boolean(response.data.authenticated))
+      } catch {
+        setAuthorized(false)
+      } finally {
+        setChecking(false)
+      }
     }
-  }, [organization, hasHydrated])
 
-  // ⏳ Block EVERYTHING until decision is made
+    verifyLoggedin()
+  }, [hasHydrated])
+
+  useEffect(() => {
+    if (!hasHydrated || checking) return
+
+    if (authorized) {
+      router.replace('/dashboard')
+    }
+  }, [authorized, checking, hasHydrated, router])
+
   if (!hasHydrated || checking) {
-    return null // or loader
+    return null
   }
 
   return <>{children}</>
