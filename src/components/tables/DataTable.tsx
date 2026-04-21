@@ -151,9 +151,6 @@ export function DataTable<TData, TValue>({
                       ${index % 2 === 0 ? 'bg-white' : 'bg-brand-25/15'}
                     `}
                   >
-                    {/* Left hover accent */}
-                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-brand-500 to-brand-300 opacity-0 transition-opacity duration-200 group-hover/row:opacity-100" />
-                    
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id} className="px-5 py-4 text-gray-700">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}

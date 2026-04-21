@@ -9,24 +9,24 @@ import { DataTable } from "@/components/tables/DataTable"
 
 export default function DashboardPage() {
   return (
-  <div className="grid grid-cols-12 gap-4 md:gap-6">
+    <div className="grid grid-cols-12 gap-4 md:gap-6">
 
-  {/* Metrics */}
-  <div className="col-span-12">
-    <EcommerceMetrics />
-  </div>
+      {/* Metrics */}
+      <div className="col-span-12">
+        <EcommerceMetrics />
+      </div>
 
-  {/* Chart */}
-  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 col-span-12">
-    <MonthlySalesChart />
-    <MonthlyTarget/>
-  </div>
+      {/* Chart */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 col-span-12">
+        <MonthlySalesChart />
+        <MonthlyTarget />
+      </div>
 
-  {/* Table (NOW BELOW CHART) */}
-  <div className="col-span-12">
-    <DataTable columns={salesColumns} data={salesData} />
-  </div>
+      {/* Table (NOW BELOW CHART) */}
+      <div className="col-span-12">
+        <DataTable columns={salesColumns} data={salesData} />
+      </div>
 
-</div>
+    </div>
   )
 }

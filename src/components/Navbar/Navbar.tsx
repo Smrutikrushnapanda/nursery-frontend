@@ -6,7 +6,7 @@ import { useState } from 'react'
 const Navbar = () => {
 
     const [open, setOpen] = useState(false);
-  const links = ["Home", "Products", "About", "Blog"];
+  const links = ["Home", "Pricing", "Contact"];
 
   return (
      <header className="absolute top-0 left-0 right-0 z-30">
@@ -28,15 +28,57 @@ const Navbar = () => {
           {open ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
-      {open && (
-        <div className="md:hidden bg-background border-t border-border px-6 py-4 space-y-3">
-          {links.map((l) => <a key={l} href="#" className="block text-sm font-medium">{l}</a>)}
-          <div className="flex gap-3 pt-3">
-            <Link href="/signin"><button className="flex-1 border border-border rounded-full py-2 text-sm text-primary">Login</button></Link>
-            <Link href="/signup"><button className="flex-1 bg-primary text-primary-foreground rounded-full py-2 text-sm">Sign Up</button></Link>
+      
+      {/* Mobile Menu Overlay */}
+      <div 
+        className={`fixed inset-0 bg-black/50 transition-opacity duration-300 md:hidden ${
+          open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={() => setOpen(false)}
+      />
+      
+      {/* Mobile Menu Sidebar */}
+      <div 
+        className={`fixed top-0 left-0 h-full w-64 bg-primary border-r border-border shadow-xl transform transition-transform duration-300 ease-in-out md:hidden ${
+          open ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="px-6 py-4 space-y-6">
+          {/* Logo in sidebar */}
+          <div className="flex items-center gap-2 text-primary-foreground pb-4 border-b border-accent/20">
+            <Leaf />
+            <span className="font-outfit text-xl font-semibold">Plant</span>
+          </div>
+          
+          {/* Links */}
+          <nav className="space-y-3">
+            {links.map((l) => (
+              <a 
+                key={l} 
+                href="#" 
+                className="block text-accent text-sm font-medium hover:text-accent/80 transition py-2"
+                onClick={() => setOpen(false)}
+              >
+                {l}
+              </a>
+            ))}
+          </nav>
+          
+          {/* Buttons */}
+          <div className="space-y-3 pt-4">
+            <Link href="/signin" onClick={() => setOpen(false)}>
+              <button className="w-full my-2 border border-accent rounded-full py-2 text-sm text-accent hover:bg-accent/10 transition">
+                Login
+              </button>
+            </Link>
+            <Link href="/signup" onClick={() => setOpen(false)}>
+              <button className="w-full my-2 border-accent border bg-accent text-primary rounded-full py-2 text-sm hover:bg-accent/90 transition">
+                Sign Up
+              </button>
+            </Link>
           </div>
         </div>
-      )}
+      </div>
     </header>
   )
 }

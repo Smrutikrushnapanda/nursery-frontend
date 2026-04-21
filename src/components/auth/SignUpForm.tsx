@@ -71,8 +71,8 @@ export default function SignUpForm() {
     setLoading(true);
     try {
       const [businessTypesData, categoriesData] = await Promise.all([getBusinessTypes(), getCategories()]);
-      setBusinessTypes(businessTypesData);
-      setCategories(categoriesData);
+      setBusinessTypes(businessTypesData.data);
+      setCategories(categoriesData.data);
     } catch (err) {
       console.error("Error fetching categories", err);
     } finally {
@@ -84,7 +84,7 @@ export default function SignUpForm() {
     if (!formData.categoryId) return;
     try {
       const response = await getSubCategories(Number(formData.categoryId));
-      const mappedSubcategories = response?.map((sc: any) => ({
+      const mappedSubcategories = response?.data?.map((sc: any) => ({
         value: sc.id.toString(),
         label: sc.name,
       })) || [];
@@ -103,7 +103,6 @@ export default function SignUpForm() {
   }, [formData.categoryId]);
 
   useEffect(() => {
-    if (businessTypes && categories) return;
     getBusinessAndCategories();
   }, []);
 
@@ -174,22 +173,22 @@ export default function SignUpForm() {
     }
   };
 
-  const businessOptions = businessTypes?.map((bt: any) => ({
+  const businessOptions = Array.isArray(businessTypes) ? businessTypes.map((bt: any) => ({
     value: bt.id.toString(),
     label: bt.name,
-  })) || [];
+  })) : [];
 
-  const categoryOptions = categories?.map((c: any) => ({
+  const categoryOptions = Array.isArray(categories) ? categories.map((c: any) => ({
     value: c.id.toString(),
     label: c.name,
-  })) || [];
+  })) : [];
 
-  const subCategoryOptions = selectedCategory?.subcategories?.map((sc: any) => ({
+  const subCategoryOptions = Array.isArray(selectedCategory?.subcategories) ? selectedCategory.subcategories.map((sc: any) => ({
     value: sc.id.toString(),
     label: sc.name,
-  })) || [];
+  })) : [];
 
-  if (!businessTypes || !categories) {
+  if (!Array.isArray(businessTypes) || !Array.isArray(categories) || businessTypes.length === 0 || categories.length === 0) {
     return (
       <>
         <div className="flex flex-1 items-center justify-center p-5 text-brand-500">

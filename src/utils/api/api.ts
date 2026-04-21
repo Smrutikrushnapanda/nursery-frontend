@@ -195,7 +195,7 @@ export const masterApis = {
     },
 
     //Master apis for plants
-    getAllPlanst: async()=>{
+    getAllPlants: async()=>{
         try {
             const {data} = await api.get("/master/plant");
 
@@ -218,7 +218,12 @@ export const masterApis = {
     createPlant: async(plant: any)=>{
         try {
             
-            const {data} = await api.post("/master/plant", plant);
+            const {data} = await api.post("/master/plant", plant, {
+                headers:{
+                    "Content-Type": "multipart/form-data"
+                },
+                withCredentials: true
+            });
 
             return data;
         } catch (error) {
@@ -240,7 +245,9 @@ export const masterApis = {
     
     deletePlant: async(id: number)=>{
         try {
-            const {data} = await api.delete(`/master/plant/${id}`);
+            const {data} = await api.delete(`/master/plant/${id}`, {
+                withCredentials: true
+            });
 
             return data
         } catch (error) {
@@ -292,11 +299,94 @@ export const masterApis = {
 
     deletePlantVariant: async(id: number)=>{
         try {
-            const {data} = await api.delete(`/master/plant-variant/${id}`);
+            const {data} = await api.delete(`/master/plant-variant/${id}`, {
+                withCredentials: true
+            });
 
             return data
         } catch (error) {
             throw getApiError(error);
+        }
+    },
+
+    //Categories and sub categories
+    getCategories: async()=>{
+        try {
+
+            const {data} = await api.get("/master/category");
+
+            return data;
+
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    createCategory: async(category: any)=>{
+        try {
+
+            const {data} = await api.post("/master/category", category, {
+                withCredentials: true
+            });
+
+            return data;
+
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    getCategoryById: async(id: number)=>{
+        try {
+
+            const {data} = await api.get(`/master/category/${id}`, {
+                withCredentials: true
+            });
+
+            return data;
+
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    updateCategory: async(id: number, category: any)=>{
+        try {
+
+            const {data} = await api.patch(`/master/category/${id}`, category, {
+                withCredentials: true
+            });
+
+            return data;
+
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    deleteCategory: async(id: string)=>{
+        try {
+
+            const {data} = await api.delete(`/master/category/${id}`, {
+                withCredentials: true
+            });
+
+            return data;
+
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    getSubCategories: async(id: number)=>{
+        try {
+
+            const {data} = await api.get(`/master/dashboard/subcategories?id=${id}`)
+
+            return data;
+
+        } catch (error) {
+            throw getApiError(error);  
         }
     }
 }

@@ -98,7 +98,7 @@ const Home = () => {
     Run Your Nursery <br /> Smarter, Faster & <br /> <span className="text-primary">Paperless.</span>
   </h1>
 
-  <p className="mt-6 text-base text-accent max-w-md leading-relaxed">
+  <p className="mt-6 text-base text-primary max-w-md leading-relaxed">
     Manage inventory, automate billing, and transform every plant into a smart product with QR technology — all from one powerful platform built for modern nurseries.
   </p>
 
@@ -138,78 +138,78 @@ function SectionTitle({ kicker, children }: { kicker?: string; children: React.R
   );
 }
 
-function Trending() {
-  return (
-   <section className="py-20 overflow-hidden">
-      <div className="mx-auto max-w-7xl px-6 lg:px-10 relative">
+// function Trending() {
+//   return (
+//    <section className="py-20 overflow-hidden">
+//       <div className="mx-auto max-w-7xl px-6 lg:px-10 relative">
         
-        <div className="flex items-center justify-between mb-8">
-          <Reveal>
-            <SectionTitle>Trending Products</SectionTitle>
-          </Reveal>
-        </div>
+//         <div className="flex items-center justify-between mb-8">
+//           <Reveal>
+//             <SectionTitle>Trending Products</SectionTitle>
+//           </Reveal>
+//         </div>
 
-        <Carousel
-          autoplay
-          autoplayDelay={1500}
-          opts={{
-            align: "start",
-            loop: true, // Optional: allows infinite scrolling
-          }}
-          className="w-full pb-16 lg:pb-0"
-        >
-          {/* -ml-6 offsets the pl-6 padding on items to create the gap */}
-          <CarouselContent className="-ml-6">
-            {trending.map((p, index) => (
-              <CarouselItem 
-                key={`${p.name}-${index}`} 
-                className="pl-6 basis-full sm:basis-1/2 lg:basis-1/3"
-              >
-                <RevealItem className="bg-brand-100 rounded-3xl p-6 group hover:-translate-y-2 transition-transform duration-300 h-full flex flex-col">
-                  <div className="bg-accent rounded-2xl p-6 mb-4 flex-shrink-0">
-                    <img 
-                      src={p.img.src} 
-                      alt={p.name} 
-                      loading="lazy" 
-                      width={512} 
-                      height={512} 
-                      className="w-full h-56 object-contain" 
-                    />
-                  </div>
-                  <h3 className="font-outfit text-xl font-semibold text-brand-700">
-                    {p.name}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mt-1 flex-grow">
-                    Lorem ipsum is simply dummy text of the printing.
-                  </p>
-                  <div className="flex items-center justify-between mt-4">
-                    <span className="font-outfit text-lg font-bold text-primary">
-                      {p.price}
-                    </span>
-                    <button className="bg-primary text-primary-foreground rounded-full px-5 py-2 text-sm font-medium hover:bg-brand-700 transition flex items-center gap-2">
-                      <ShoppingBag size={14} /> Add to cart
-                    </button>
-                  </div>
-                </RevealItem>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
+//         <Carousel
+//           autoplay
+//           autoplayDelay={1500}
+//           opts={{
+//             align: "start",
+//             loop: true, // Optional: allows infinite scrolling
+//           }}
+//           className="w-full pb-16 lg:pb-0"
+//         >
+//           {/* -ml-6 offsets the pl-6 padding on items to create the gap */}
+//           <CarouselContent className="-ml-6">
+//             {trending.map((p, index) => (
+//               <CarouselItem 
+//                 key={`${p.name}-${index}`} 
+//                 className="pl-6 basis-full sm:basis-1/2 lg:basis-1/3"
+//               >
+//                 <RevealItem className="bg-brand-100 rounded-3xl p-6 group hover:-translate-y-2 transition-transform duration-300 h-full flex flex-col">
+//                   <div className="bg-accent rounded-2xl p-6 mb-4 flex-shrink-0">
+//                     <img 
+//                       src={p.img.src} 
+//                       alt={p.name} 
+//                       loading="lazy" 
+//                       width={512} 
+//                       height={512} 
+//                       className="w-full h-56 object-contain" 
+//                     />
+//                   </div>
+//                   <h3 className="font-outfit text-xl font-semibold text-brand-700">
+//                     {p.name}
+//                   </h3>
+//                   <p className="text-sm text-muted-foreground mt-1 flex-grow">
+//                     Lorem ipsum is simply dummy text of the printing.
+//                   </p>
+//                   <div className="flex items-center justify-between mt-4">
+//                     <span className="font-outfit text-lg font-bold text-primary">
+//                       {p.price}
+//                     </span>
+//                     <button className="bg-primary text-primary-foreground rounded-full px-5 py-2 text-sm font-medium hover:bg-brand-700 transition flex items-center gap-2">
+//                       <ShoppingBag size={14} /> Add to cart
+//                     </button>
+//                   </div>
+//                 </RevealItem>
+//               </CarouselItem>
+//             ))}
+//           </CarouselContent>
           
-          <div className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-3 lg:hidden">
-            <CarouselPrevious className="relative left-auto top-auto translate-x-0 translate-y-0 bg-primary text-primary-foreground hover:bg-brand-700" />
-            <CarouselNext className="relative right-auto top-auto translate-x-0 translate-y-0 bg-primary text-primary-foreground hover:bg-brand-700" />
-          </div>
+//           <div className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-3 lg:hidden">
+//             <CarouselPrevious className="relative left-auto top-auto translate-x-0 translate-y-0 bg-primary text-primary-foreground hover:bg-brand-700" />
+//             <CarouselNext className="relative right-auto top-auto translate-x-0 translate-y-0 bg-primary text-primary-foreground hover:bg-brand-700" />
+//           </div>
 
-          <div className="hidden lg:block">
-            <CarouselPrevious className="-left-12 bg-primary text-primary-foreground hover:bg-brand-700" />
-            <CarouselNext className="-right-12 bg-primary text-primary-foreground hover:bg-brand-700" />
-          </div>
-        </Carousel>
+//           <div className="hidden lg:block">
+//             <CarouselPrevious className="-left-12 bg-primary text-primary-foreground hover:bg-brand-700" />
+//             <CarouselNext className="-right-12 bg-primary text-primary-foreground hover:bg-brand-700" />
+//           </div>
+//         </Carousel>
 
-      </div>
-    </section>
-  );
-}
+//       </div>
+//     </section>
+//   );
+// }
 
 function HowToOrder() {
   return (
@@ -276,7 +276,7 @@ export default function Index() {
     <div className=" min-h-screen">
       <main>
         <Home />
-        <Trending />
+        {/* <Trending /> */}
         <HowToOrder/>
         <BestProducts/>
       </main>

@@ -9,7 +9,9 @@ interface AppState {
   businessTypes: any | null;
   categories: any | null;
   isLoading: boolean;
-  hasHydrated: boolean,
+  hasHydrated: boolean;
+  stocks: any | null;
+  plants: any | null;
   setUser: (user: any) => void;
   setToken: (token: string) => void;
   setMenu: (menu: any) => void;
@@ -18,7 +20,8 @@ interface AppState {
   setOrganization: (organization: any) => void;
   setLoading: (isLoading: boolean) => void;
   setHydration: (hasHydrated: boolean) => void;
-  // logout: () => void;
+  setStocks: (stocks: any) => void;
+  setPlants: (plants: any)=> void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -32,6 +35,8 @@ export const useAppStore = create<AppState>()(
       categories: null,
       isLoading: false,
       hasHydrated: false,
+      stocks: null,
+      plants: null,
       setUser: (user) => set({ user }),
       setToken: (token) => set({ token }),
       setMenu: (menu) => set({ menu }),
@@ -40,7 +45,8 @@ export const useAppStore = create<AppState>()(
       setCategories: (categories) => set({ categories }),
       setLoading: (isLoading) => set({ isLoading }),
       setHydration: (hasHydrated) => set({ hasHydrated }),
-      // logout: () => set({ user: null, token: null }),
+      setStocks: (stocks)=> set({stocks}),
+      setPlants: (plants)=> set({plants})
     }),
     {
       name: 'nursery-storage',
