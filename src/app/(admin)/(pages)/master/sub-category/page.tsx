@@ -13,12 +13,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Modal } from "@/components/ui/modal";
 import { masterApis } from "@/utils/api/api";
 
-type CategoryItem = {
+type SubCateogryItem = {
   id: number;
   name: string;
-  description?: string | null;
-  status: boolean;
+  categoryId: number;
   organizationId?: string | null;
+  category: any;
   created_at?: string;
   updated_at?: string;
 };
@@ -51,7 +51,7 @@ const formatDate = (value?: string) => {
 };
 
 export default function Page() {
-  const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [categories, setCategories] = useState<SubCateogryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -66,8 +66,7 @@ export default function Page() {
 
     try {
       const response = await masterApis.getCategories();
-      console.log(response);
-      setCategories(Array.isArray(response?.data.data) ? response.data.data : []);
+      setCategories(Array.isArray(response?.data) ? response.data : []);
     } catch (err: any) {
       console.log(err);
       setError(err?.message || "Failed to load categories");
