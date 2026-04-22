@@ -41,7 +41,9 @@ export const authApis = {
     login: async (formData: any) => {
         try {
 
-            const { data } = await api.post("/auth/login", formData);
+            const { data } = await api.post("/auth/login", formData, {
+                withCredentials: true
+            });
 
             return data
         } catch (error: any) {

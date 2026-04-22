@@ -8,12 +8,14 @@ import Link from "next/link";
 import React, { useState } from "react";
 import { useAppStore } from "@/utils/store/store";
 import { authApis } from "@/utils/api/api";
+import { useRouter } from "next/navigation";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const [formData, setFormData] = useState({ email: "", password: "" });
 
+  const router = useRouter();
   const { login } = authApis;
   const { isLoading, setLoading, setOrganization } = useAppStore();
 
@@ -43,9 +45,10 @@ export default function SignInForm() {
         return;
       }
       const response = await login(formData);
-      const { accessToken, ...rest } = response;
+      const { accessToken, ...rest } = response.data;
       setOrganization(rest);
       setFormData(prev => ({ ...prev, email: "", password: "" }));
+      router.push("/dashboard")
     } catch (error) {
       console.log(error);
     } finally {

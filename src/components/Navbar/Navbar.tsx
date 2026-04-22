@@ -21,8 +21,8 @@ const Navbar = () => {
           ))}
         </nav>
         <div className="hidden md:flex items-center gap-4">
-          <button className="text-sm font-medium text-primary hover:text-brand-700">Login</button>
-          <button className="bg-primary text-primary-foreground rounded-full px-5 py-2 text-sm font-medium hover:bg-brand-700 transition">Sign Up</button>
+          <Link href="/signin" className="text-sm font-medium text-primary hover:text-brand-700">Login</Link>
+          <Link href="/signup" className="bg-primary text-primary-foreground rounded-full px-5 py-2 text-sm font-medium hover:bg-brand-700 transition">Sign Up</Link>
         </div>
         <button className="md:hidden p-2 text-primary" onClick={() => setOpen(!open)} aria-label="Menu">
           {open ? <X size={24} /> : <Menu size={24} />}
@@ -66,15 +66,12 @@ const Navbar = () => {
           
           {/* Buttons */}
           <div className="space-y-3 pt-4">
-            <Link href="/signin" onClick={() => setOpen(false)}>
-              <button className="w-full my-2 border border-accent rounded-full py-2 text-sm text-accent hover:bg-accent/10 transition">
+            <Link href="/signin" className='w-full my-2 border border-accent rounded-full py-2 text-sm text-accent hover:bg-accent/10 transition' onClick={() => setOpen(false)} >
                 Login
-              </button>
             </Link>
-            <Link href="/signup" onClick={() => setOpen(false)}>
-              <button className="w-full my-2 border-accent border bg-accent text-primary rounded-full py-2 text-sm hover:bg-accent/90 transition">
+            <Link href="/signup" className='w-full my-2 border-accent border bg-accent text-primary rounded-full py-2 text-sm hover:bg-accent/90 transition' onClick={() => setOpen(false)} >
+
                 Sign Up
-              </button>
             </Link>
           </div>
         </div>

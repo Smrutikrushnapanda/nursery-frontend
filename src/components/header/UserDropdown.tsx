@@ -1,12 +1,12 @@
 "use client";
 import Image from "next/image";
-import Link from "next/link";
 import React, { useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { useAppStore } from "@/utils/store/store";
 import { useRouter } from "next/navigation";
 import { authApis } from "@/utils/api/api";
+import {POST} from "@/utils/api/logout/route"
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
@@ -23,10 +23,7 @@ export default function UserDropdown() {
     setLoading(true)
     try {
       try {
-        await fetch('/api/logout', {
-          method: 'POST',
-          credentials: 'include',
-        })
+        POST()
       } catch (error) {
         console.error('Frontend cookie clear failed:', error)
       }

@@ -68,7 +68,7 @@ export default function InventoryPage() {
           id: Number(item?.id ?? 0),
           label: (() => {
             const fallbackLabel =
-              [item?.plant?.name, item?.size, item?.sku].filter(Boolean).join(" | ") ||
+              [item?.plant?.name, item?.size].filter(Boolean).join(" - ") ||
               `Variant #${item?.id ?? "-"}`;
 
             return item?.name ?? fallbackLabel;
