@@ -1,6 +1,5 @@
 @import 'tailwindcss';
 @import "tw-animate-css";
-@import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -762,8 +761,8 @@ span.flatpickr-weekday,
 */
 
 @theme inline {
-  --font-heading: var(--font-sans);
-  --font-sans: var(--font-sans);
+  --font-heading: var(--font-outfit);
+  --font-sans: var(--font-outfit);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -865,7 +864,7 @@ span.flatpickr-weekday,
 */
 
 .dark {
-  --background: #011003;
+  --background: #151c1a;
   --foreground: #f2edc2;
 
   --card: #0f2413;
@@ -894,7 +893,7 @@ span.flatpickr-weekday,
   --destructive: oklch(0.704 0.191 22.216);
 
   /* UI STRUCTURE */
-  --border: rgba(13, 78, 3, 0.96);
+  --border: rgba(159, 203, 152, 0.16);
   --input: rgba(159, 203, 152, 0.16);
   --ring: #79ae6f;
 

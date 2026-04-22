@@ -1,95 +1,156 @@
 "use client"
 
-import React from "react"
-import Badge from "../ui/badge/Badge"
 import {
-  ArrowDownIcon,
-  ArrowUpIcon,
   BoxIconLine,
   DollarLineIcon,
   GroupIcon,
   ShootingStarIcon,
 } from "@/icons"
-import { inventoryOverview, recentPlantSales } from "./nurseryData"
 
 const metrics = [
   {
-    title: "Plants Sold Today",
-    value: "20",
-    note: "Across walk-in and wholesale orders",
-    change: "12.4%",
-    trend: "up" as const,
-    icon: GroupIcon,
-  },
-  {
-    title: "Live Inventory",
-    value: inventoryOverview.reduce((total, plant) => total + plant.stock, 0).toString(),
-    note: "Units ready across all nursery zones",
-    change: "3.1%",
-    trend: "down" as const,
+    title: "Total Plants",
+    value: "12,540",
     icon: BoxIconLine,
+    trend: "+12%",
+    bgColor: "bg-brand-50",
+    iconColor: "text-brand-600",
+    borderColor: "border-brand-200",
+    gradientFrom: "from-brand-500",
+    gradientTo: "to-brand-300",
   },
   {
-    title: "Sales Value Today",
-    value: new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      maximumFractionDigits: 0,
-    }).format(recentPlantSales.reduce((total, sale) => total + sale.amount, 0)),
-    note: "Based on the latest plant sales",
-    change: "8.7%",
-    trend: "up" as const,
+    title: "Today's Sales",
+    value: "$1,240",
     icon: DollarLineIcon,
+    trend: "+8%",
+    bgColor: "bg-success-50",
+    iconColor: "text-success-600",
+    borderColor: "border-success-200",
+    gradientFrom: "from-success-500",
+    gradientTo: "to-success-300",
   },
   {
-    title: "Fast Movers",
-    value: "Aloe, Pothos",
-    note: "Highest sell-through this week",
-    change: "Restock soon",
-    trend: "up" as const,
+    title: "Sold Today",
+    value: "86",
+    icon: GroupIcon,
+    trend: "+5%",
+    bgColor: "bg-blue-light-50",
+    iconColor: "text-brand-500",
+    borderColor: "border-blue-light-200",
+    gradientFrom: "from-brand-500",
+    gradientTo: "to-brand-300",
+  },
+  {
+    title: "Total Inventory",
+    value: "8,320",
     icon: ShootingStarIcon,
+    trend: "-3%",
+    bgColor: "bg-orange-50",
+    iconColor: "text-orange-600",
+    borderColor: "border-orange-200",
+    gradientFrom: "from-orange-500",
+    gradientTo: "to-orange-300",
   },
 ]
 
 export const EcommerceMetrics = () => {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 md:gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 md:gap-6">
       {metrics.map((metric) => {
         const Icon = metric.icon
 
         return (
           <div
             key={metric.title}
-            className="rounded-2xl border border-borderbordergray-200 bg-white p-5 dark:border-borderbordergray-800 dark:bg-white/[0.03] md:p-6"
+            className="group relative overflow-hidden rounded-2xl bg-white p-5 shadow-theme-xs transition-all duration-300 hover:shadow-theme-lg"
           >
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800">
-              <Icon className="size-6 text-gray-800 dark:text-white/90" />
-            </div>
+            {/* Multi-layer border effect */}
+            <div className={`absolute inset-0 rounded-2xl border-2 ${metric.borderColor} opacity-40`} />
+            <div className={`absolute inset-0.5 rounded-xl border ${metric.borderColor} opacity-60`} />
+            <div className="absolute inset-2 rounded-lg border border-dashed border-brand-100/50 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            
+            {/* Top accent border with gradient */}
+            <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${metric.gradientFrom} ${metric.gradientTo} rounded-t-2xl`} />
+            
+            {/* Corner accent */}
+            <div className={`absolute -top-1 -right-1 h-8 w-8 rounded-full bg-gradient-to-br ${metric.gradientFrom} ${metric.gradientTo} opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-20`} />
+            
+            {/* Background pattern */}
+            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-brand-25/30 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-            <div className="mt-5 flex items-start justify-between gap-4">
-              <div>
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  {metric.title}
-                </span>
-                <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-                  {metric.value}
-                </h4>
-                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                  {metric.note}
-                </p>
+            <div className="relative">
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                  <span className="text-sm font-medium text-gray-600">
+                    {metric.title}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${
+                      metric.trend.startsWith('+') 
+                        ? 'bg-success-50 text-success-700 border border-success-200' 
+                        : 'bg-orange-50 text-orange-700 border border-orange-200'
+                    }`}>
+                      {metric.trend}
+                    </span>
+                    <span className="text-xs text-gray-400">vs last week</span>
+                  </div>
+                </div>
+
+                <div className={`relative h-12 w-12 flex items-center justify-center rounded-xl ${metric.bgColor} border-2 ${metric.borderColor} shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:shadow-md`}>
+                  <div className={`absolute inset-0 rounded-xl bg-gradient-to-br ${metric.gradientFrom} ${metric.gradientTo} opacity-0 transition-opacity duration-300 group-hover:opacity-10`} />
+                  <Icon className={`size-6 ${metric.iconColor} transition-transform duration-300 group-hover:rotate-6`} />
+                </div>
               </div>
 
-              {metric.trend === "up" ? (
-                <Badge color="success">
-                  <ArrowUpIcon />
-                  {metric.change}
-                </Badge>
-              ) : (
-                <Badge color="warning">
-                  <ArrowDownIcon className="text-warning-500" />
-                  {metric.change}
-                </Badge>
-              )}
+              <div className="mt-4 flex items-end justify-between">
+                <div>
+                  <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
+                    {metric.value}
+                  </h2>
+                  <div className="mt-1 flex items-center gap-1">
+                    <div className={`h-1 w-1 rounded-full ${metric.iconColor.replace('text', 'bg')}`} />
+                    <span className="text-xs text-gray-500">Updated today</span>
+                  </div>
+                </div>
+                
+                {/* Mini sparkline bars */}
+                <div className="flex items-end gap-1">
+                  {[...Array(4)].map((_, i) => (
+                    <div
+                      key={i}
+                      className={`w-1.5 rounded-full transition-all duration-300 ${
+                        metric.trend.startsWith('+')
+                          ? 'bg-gradient-to-t from-success-400 to-success-300'
+                          : 'bg-gradient-to-t from-orange-400 to-orange-300'
+                      } ${i === 3 ? 'opacity-50' : 'opacity-100'}`}
+                      style={{
+                        height: `${[16, 24, 12, 20][i]}px`,
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Progress indicator */}
+              <div className="mt-4 flex items-center gap-3">
+                <div className="h-1.5 flex-1 rounded-full bg-gray-100">
+                  <div
+                    className={`h-full rounded-full bg-gradient-to-r ${metric.gradientFrom} ${metric.gradientTo} transition-all duration-500`}
+                    style={{ width: metric.trend.startsWith('+') ? '78%' : '42%' }}
+                  />
+                </div>
+                <span className="text-xs font-medium text-gray-500">
+                  {metric.trend.startsWith('+') ? '78%' : '42%'}
+                </span>
+              </div>
+
+              {/* Decorative bottom dots */}
+              <div className="absolute -bottom-1 -right-1 flex gap-0.5 opacity-20">
+                <div className={`h-1.5 w-1.5 rounded-full ${metric.iconColor.replace('text', 'bg')}`} />
+                <div className={`h-1.5 w-1.5 rounded-full ${metric.iconColor.replace('text', 'bg')} opacity-60`} />
+                <div className={`h-1.5 w-1.5 rounded-full ${metric.iconColor.replace('text', 'bg')} opacity-30`} />
+              </div>
             </div>
           </div>
         )
