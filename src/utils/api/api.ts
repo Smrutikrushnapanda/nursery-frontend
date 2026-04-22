@@ -96,7 +96,7 @@ export const authApis = {
         }
     },
 
-    getSubCategories: async (id: number) => {
+    getSubCategories: async (id?: number) => {
         try {
             const { data } = await api.get("/register/sub-categories?categoryId=" + id)
 
@@ -271,7 +271,9 @@ export const masterApis = {
     //Master api plant variants
     getAllPlantVariants: async()=>{
         try {
-            const {data} = await api.get("/master/plant-variant");
+            const {data} = await api.get("/master/plant-variant", {
+                withCredentials: true
+            });
 
             return data
         } catch (error) {
@@ -281,7 +283,9 @@ export const masterApis = {
 
     getPlantVariantById: async(id: number)=>{
         try {
-            const {data} = await api.get(`/master/plant-variant/${id}`);
+            const {data} = await api.get(`/master/plant-variant/${id}`, {
+                withCredentials: true
+            });
 
             return data
         } catch (error) {
@@ -292,7 +296,9 @@ export const masterApis = {
     createPlantVariant : async(variantData: any)=>{
         try {
 
-            const {data} = await api.post("master/plant-variant", variantData);
+            const {data} = await api.post("/master/plant-variant", variantData, {
+                withCredentials: true
+            });
 
             return data;
         } catch (error) {
@@ -302,7 +308,9 @@ export const masterApis = {
 
     updatePlantVariant: async(id: number, newVariant: any)=>{
         try {
-            const {data} = await api.patch(`/master/plant-variant/${id}`, newVariant);
+            const {data} = await api.patch(`/master/plant-variant/${id}`, newVariant, {
+                withCredentials: true
+            });
 
             return data
         } catch (error) {
@@ -391,24 +399,82 @@ export const masterApis = {
         }
     },
 
-    getSubCategories: async(id: number)=>{
+    getSubCategories: async(categoryId?: number)=>{
         try {
 
-            const {data} = await api.get(`/master/dashboard/subcategories?id=${id}`)
+            const query = typeof categoryId === "number"
+                ? `?categoryId=${categoryId}`
+                : "";
+            const {data} = await api.get(`/master/dashboard/subcategories${query}`)
 
             return data;
 
         } catch (error) {
             throw getApiError(error);  
         }
+    },
+
+    createSubCategory: async(subCategory: any)=>{
+        try {
+
+            const {data} = await api.post("/master/dashboard/subcategories", subCategory, {
+                withCredentials: true
+            });
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    updateSubCategory: async(id: number, subCategory: any)=>{
+        try {
+
+            const {data} = await api.put(`/master/dashboard/subcategories/${id}`, subCategory, {
+                withCredentials: true
+            });
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    deleteSubCategory: async(id: number)=>{
+        try {
+
+            const {data} = await api.delete(`/master/dashboard/subcategories/${id}`, {
+                withCredentials: true
+            });
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
     }
 }
 
 export const inventoryApis = {
 
+    getAllStocks : async()=>{
+        try {
+
+            const {data} = await api.get("/inventory", {
+                withCredentials: true
+            });
+
+            return data;
+
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
     getStockById: async(id: number)=>{
       try {
-        const {data} = await api.get(`inventory/${id}`);
+        const {data} = await api.get(`inventory/${id}`, {
+            withCredentials: true
+        });
 
         return data;
       } catch (error) {
@@ -418,7 +484,21 @@ export const inventoryApis = {
     addStocks: async(stockData: any)=>{
         try {
 
-            const {data} = await api.post("inventory/add-stock", stockData)
+            const {data} = await api.post("inventory/add-stock", stockData, {
+                withCredentials: true
+            })
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    updateStock: async(stockData: any)=>{
+        try {
+            const {data} = await api.put("inventory/stock", stockData, {
+                withCredentials: true
+            })
 
             return data;
         } catch (error) {
@@ -429,7 +509,9 @@ export const inventoryApis = {
     removeStock : async(stockData: any)=>{
         try {
 
-            const {data} = await api.post("inventory/remove-stock", stockData)
+            const {data} = await api.post("inventory/remove-stock", stockData, {
+                withCredentials: true
+            })
 
             return data;
         } catch (error) {
@@ -440,7 +522,21 @@ export const inventoryApis = {
     deadStock: async(stockData: any)=>{
         try {
 
-            const {data} = await api.post("inventory/dead-stock", stockData)
+            const {data} = await api.post("inventory/dead-stock", stockData, {
+                withCredentials: true
+            })
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    deleteStock: async(variantId: number)=>{
+        try {
+            const {data} = await api.delete(`/inventory/${variantId}`, {
+                withCredentials: true
+            })
 
             return data;
         } catch (error) {

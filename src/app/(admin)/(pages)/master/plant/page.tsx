@@ -12,6 +12,7 @@ import {
 import { plantMasterColumns } from "./PlantMasterColumns";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { TableLoader } from "@/components/table-loader/table-loader";
 
 export default function Page() {
   const [plants, setPlants] = useState<PlantMasterRow[]>([]);
@@ -55,12 +56,7 @@ export default function Page() {
           {error}
         </div>
       ) : loading ? (
-        <div className="flex min-h-[260px] items-center justify-center rounded-2xl border-2 border-brand-200/40 bg-white">
-          <div className="text-center">
-            <div className="mx-auto h-10 w-10 animate-spin rounded-full border-b-2 border-brand-600" />
-            <p className="mt-3 text-sm text-gray-500">Loading plant master data...</p>
-          </div>
-        </div>
+        <TableLoader message="Loading plant master data..."/>
       ) : (
         <DataTable columns={plantMasterColumns} data={plants} defaultPageSize={10} />
       )}
