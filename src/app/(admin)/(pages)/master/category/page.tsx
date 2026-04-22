@@ -66,8 +66,7 @@ export default function Page() {
 
     try {
       const response = await masterApis.getCategories();
-      console.log(response);
-      setCategories(Array.isArray(response?.data.data) ? response.data.data : []);
+      setCategories(Array.isArray(response?.data) ? response.data : []);
     } catch (err: any) {
       console.log(err);
       setError(err?.message || "Failed to load categories");
