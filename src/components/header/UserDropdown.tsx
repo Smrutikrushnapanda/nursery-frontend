@@ -10,7 +10,7 @@ import {POST} from "@/utils/api/logout/route"
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const { setLoading, setOrganization } = useAppStore()
+  const { setLoading, setOrganization, setLoggedIn } = useAppStore()
   const router = useRouter()
   const { logout } = authApis;
 
@@ -24,12 +24,14 @@ export default function UserDropdown() {
     try {
       try {
         POST()
+        setLoggedIn(false);
       } catch (error) {
         console.error('Frontend cookie clear failed:', error)
       }
-
+      
       try {
         await logout();
+        setLoggedIn(false);
       } catch (error) {
         console.error('Backend logout failed:', error)
       }

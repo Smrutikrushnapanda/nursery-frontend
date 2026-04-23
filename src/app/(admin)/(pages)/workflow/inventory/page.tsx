@@ -28,7 +28,8 @@ type VariantApiItem = {
 };
 
 export default function InventoryPage() {
-  const { isLoading, setLoading, stocks, setStocks } = useAppStore();
+  const { stocks, setStocks } = useAppStore();
+  const [isPageLoading, setIsPageLoading] = useState(true);
   const { getAllStocks, addStocks, updateStock } = inventoryApis;
   const [dialogMode, setDialogMode] = useState<"add" | "edit" | null>(null);
   const [stockForm, setStockForm] = useState<StockFormState>(initialStockForm);
@@ -37,7 +38,7 @@ export default function InventoryPage() {
   const [viewingStock, setViewingStock] = useState<InventoryItem | null>(null);
 
   const getStocks = async () => {
-    setLoading(true);
+    setIsPageLoading(true);
     try {
       const response = await getAllStocks();
 
@@ -48,7 +49,7 @@ export default function InventoryPage() {
       alert(error.message);
       console.log(error);
     } finally {
-      setLoading(false);
+      setIsPageLoading(false);
     }
   };
 
@@ -154,7 +155,7 @@ export default function InventoryPage() {
     []
   );
 
-  if (isLoading) return <TableLoader message="Loadibg Inventory..." />;
+  if (isPageLoading) return <TableLoader message="Loading Inventory..." />;
 
   return (
     <div className="p-6 space-y-4">

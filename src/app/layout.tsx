@@ -1,6 +1,5 @@
 import { Outfit, Inter } from 'next/font/google';
 import './globals.css';
-import "flatpickr/dist/flatpickr.css";
 import { SidebarProvider } from '@/context/SidebarContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { cn } from "@/lib/utils";
@@ -16,6 +15,8 @@ const outfit = Outfit({
   subsets: ["latin"],
 });
 
+import GlobalLoader from "@/src/components/GlobalLoader";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -25,7 +26,10 @@ export default function RootLayout({
     <html lang="en" className={cn("font-sans", inter.variable)}>
       <body className={`${outfit.className} bg-white`}>
         <ThemeProvider>
-          <SidebarProvider>{children}</SidebarProvider>
+          <SidebarProvider>
+            {children}
+            <GlobalLoader />
+          </SidebarProvider>
         </ThemeProvider>
       </body>
     </html>
