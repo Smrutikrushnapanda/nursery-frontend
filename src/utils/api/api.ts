@@ -214,7 +214,9 @@ export const masterApis = {
     //Master apis for plants
     getAllPlants: async () => {
         try {
-            const { data } = await api.get("/master/plant");
+            const { data } = await api.get("/master/plant", {
+                withCredentials: true
+            });
 
             return data
         } catch (error) {
@@ -224,7 +226,9 @@ export const masterApis = {
 
     getPlantById: async (id: number) => {
         try {
-            const { data } = await api.get(`/master/plant/${id}`);
+            const { data } = await api.get(`/master/plant/${id}`, {
+                withCredentials: true
+            });
 
             return data
         } catch (error) {
@@ -251,7 +255,9 @@ export const masterApis = {
     updatePlant: async (id: number, newPlant: any) => {
         try {
 
-            const { data } = await api.patch(`/master/plant/${id}`, newPlant);
+            const { data } = await api.patch(`/master/plant/${id}`, newPlant, {
+                withCredentials: true
+            });
 
             return data
 
@@ -338,7 +344,9 @@ export const masterApis = {
     getCategories: async () => {
         try {
 
-            const { data } = await api.get("/master/category");
+            const { data } = await api.get("/master/category", {
+                withCredentials: true
+            });
 
             return data;
 
@@ -409,7 +417,9 @@ export const masterApis = {
             const query = typeof categoryId === "number"
                 ? `?categoryId=${categoryId}`
                 : "";
-            const { data } = await api.get(`/master/dashboard/subcategories${query}`)
+            const { data } = await api.get(`/master/dashboard/subcategories${query}`, {
+                withCredentials: true
+            })
 
             return data;
 
@@ -610,4 +620,169 @@ export const plansApi = {
             throw getApiError(error);
         }
     }
+}
+
+export const qrApis = {
+
+    generateQrCode: async (id: number) => {
+        try {
+            const { data } = await api.post(`/qr/generate/${id}`, null, {
+                withCredentials: true
+            })
+            return data
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    getQrCode: async (code: string) => {
+        try {
+            const { data } = await api.get(`/qr/${code}`, {
+                withCredentials: true
+            })
+            return data
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    getQrAnalytics: async (days: number = 30) => {
+        try {
+            const { data } = await api.get(`/qr/analytics/summary?days=${days}`, {
+                withCredentials: true
+            });
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    }
+}
+
+
+export const paymentApis = {
+    getAllPayments: async () => {
+        try {
+            const { data } = await api.get("/payments", {
+                withCredentials: true
+            });
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    getPaymentById: async (id: number) => {
+        try {
+            const { data } = await api.get(`/payments/${id}`, {
+                withCredentials: true
+            });
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    updatePaymentStatus: async (id: number, status: string) => {
+        try {
+            const { data } = await api.patch(`/payments/${id}/status`, { status }, {
+                withCredentials: true
+            });
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    }
+}
+
+export const reportApis = {
+    getSalesReports: async (type?: string) => {
+        try {
+            const { data } = await api.get(`/reports/sales?type=${type}`, {
+                withCredentials: true
+            });
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+    getTopPlants: async (limit?: number) => {
+        try {
+            const { data } = await api.get(`/reports/top-plants?limit=${limit}`, {
+                withCredentials: true
+            })
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    getInventoryValue: async () => {
+        try {
+            const { data } = await api.get('/reports/inventory-value', {
+                withCredentials: true
+            });
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    }
+}
+
+export const subscriptionApis = {
+    getActiveSubscription: async () => {
+        try {
+            const { data } = await api.get("/subscriptions/me", {
+                withCredentials: true
+            })
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    subscribe: async (planId: string, paymentMethod: string, paymentReference: string) => {
+        try {
+            const { data } = await api.post("/subscription/subscribe", {
+                planId, paymentMethod, paymentReference
+            }, {
+                withCredentials: true
+            })
+
+            return data;
+
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    upgrade: async (planId: string, paymentMethod: string, paymentReference: string) => {
+        try {
+            const { data } = await api.post("/subscription/upgrade", {
+                planId, paymentMethod, paymentReference
+            }, {
+                withCredentials: true
+            })
+
+            return data;
+
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+    cancel: async () => {
+        try {
+            const { data } = await api.post("/subscription/cancel", {}, {
+                withCredentials: true
+            })
+
+            return data;
+
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
 }

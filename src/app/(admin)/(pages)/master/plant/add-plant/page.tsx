@@ -52,7 +52,14 @@ export default function AddPlantPage() {
     try {
       const response = await getCategories();
       if (response.success) {
-        setCategories((response.data ?? []).map(normalizeCategory));
+        // Handle potential nested data structure from backend wrapper
+        const rawData = response.data;
+        const categoriesList = Array.isArray(rawData) 
+          ? rawData 
+          : Array.isArray(rawData?.data) 
+            ? rawData.data 
+            : [];
+        setCategories(categoriesList.map(normalizeCategory));
       }
     } catch (error) {
       console.log(error);

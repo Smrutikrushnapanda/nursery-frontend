@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { DashboardDialog } from "@/components/common/DashboardDialog";
 import { StockFormDialog, StockFormState, StockVariantOption } from "@/components/inventory/StockFormDialog";
+import { DeadStockDialog } from "@/components/inventory/DeadStockDialog";
 import { DataTable } from "@/components/tables/DataTable";
 import { getInventoryColumns, InventoryItem } from "@/components/tables/Columns";
 import { useAppStore } from "@/utils/store/store";
@@ -36,6 +37,7 @@ export default function InventoryPage() {
   const [saving, setSaving] = useState(false);
   const [variantOptions, setVariantOptions] = useState<StockVariantOption[]>([]);
   const [viewingStock, setViewingStock] = useState<InventoryItem | null>(null);
+  const [deadStockTarget, setDeadStockTarget] = useState<InventoryItem | null>(null);
 
   const getStocks = async () => {
     setIsPageLoading(true);
@@ -145,14 +147,29 @@ export default function InventoryPage() {
     }
   };
 
+  const handleDeadStockSubmit = async (data: { variantId: number; quantity: number; reason: string }) => {
+    setSaving(true);
+    try {
+      await inventoryApis.deadStock(data);
+      await getStocks();
+      setDeadStockTarget(null);
+    } catch (error: any) {
+      console.log(error);
+      alert(error?.message || "Failed to mark dead stock");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const columns = useMemo(
     () =>
       getInventoryColumns({
         onView: setViewingStock,
         onEdit: handleEditOpen,
         onDeleted: getStocks,
+        onDeadStock: setDeadStockTarget,
       }),
-    []
+    [getStocks]
   );
 
   if (isPageLoading) return <TableLoader message="Loading Inventory..." />;
@@ -181,6 +198,14 @@ export default function InventoryPage() {
           onSubmit={handleStockSubmit}
         />
       ) : null}
+
+      <DeadStockDialog
+        isOpen={Boolean(deadStockTarget)}
+        stockItem={deadStockTarget}
+        saving={saving}
+        onClose={() => setDeadStockTarget(null)}
+        onSubmit={handleDeadStockSubmit}
+      />
 
       <DashboardDialog
         isOpen={Boolean(viewingStock)}

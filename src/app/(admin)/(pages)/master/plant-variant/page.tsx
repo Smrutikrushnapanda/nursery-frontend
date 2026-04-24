@@ -144,11 +144,6 @@ export default function Page() {
         ),
       },
       {
-        accessorKey: "sku",
-        header: "SKU",
-        cell: ({ row }) => <span className="font-medium text-gray-700">{row.original.sku}</span>,
-      },
-      {
         accessorKey: "size",
         header: "Size",
       },
@@ -204,7 +199,7 @@ export default function Page() {
               variant="outline"
               className="h-8 w-8 rounded-lg"
               onClick={() => setViewingVariant(row.original)}
-              aria-label={`View ${row.original.sku}`}
+              aria-label={`View ${row.original.plant?.name}`}
             >
               <Eye className="h-4 w-4" />
             </Button>
@@ -214,7 +209,7 @@ export default function Page() {
               variant="outline"
               className="h-8 w-8 rounded-lg"
               onClick={() => handleEdit(row.original)}
-              aria-label={`Edit ${row.original.sku}`}
+              aria-label={`Edit ${row.original.plant?.name}`}
             >
               <Pencil className="h-4 w-4" />
             </Button>
@@ -224,7 +219,7 @@ export default function Page() {
               variant="outline"
               className="h-8 w-8 rounded-lg border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
               onClick={() => setDeletingVariant(row.original)}
-              aria-label={`Delete ${row.original.sku}`}
+              aria-label={`Delete ${row.original.plant?.name}`}
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -307,33 +302,6 @@ export default function Page() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="sku">
-                SKU <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="sku"
-                name="sku"
-                value={form.sku}
-                onChange={handleInputChange}
-                placeholder="e.g., ROSE-MEDIUM-001"
-                required
-                className="rounded-xl"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="barcode">Barcode</Label>
-              <Input
-                id="barcode"
-                name="barcode"
-                value={form.barcode}
-                onChange={handleInputChange}
-                placeholder="e.g., 8901234567890"
-                className="rounded-xl"
-              />
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="price">
                 Price <span className="text-red-500">*</span>
               </Label>
@@ -403,7 +371,7 @@ export default function Page() {
             </Button>
             <Button
               type="submit"
-              disabled={saving || !form.plantId || !form.sku.trim() || !form.price.trim()}
+              disabled={saving || !form.plantId || !form.price.trim()}
               className="rounded-xl"
             >
               {saving
@@ -429,7 +397,7 @@ export default function Page() {
         title="Delete Plant Variant"
         description={
           deletingVariant
-            ? `This will delete "${deletingVariant.sku}". You can't undo this from the table.`
+            ? `This will delete this variant of "${deletingVariant.plant?.name}". You can't undo this from the table.`
             : "This action will delete the selected plant variant."
         }
         confirmLabel="Delete"
@@ -449,10 +417,6 @@ export default function Page() {
               <p className="font-medium text-gray-900">{viewingVariant.plant?.name ?? "-"}</p>
             </div>
             <div>
-              <p className="text-xs uppercase text-gray-500">SKU</p>
-              <p className="font-medium text-gray-900">{viewingVariant.sku}</p>
-            </div>
-            <div>
               <p className="text-xs uppercase text-gray-500">Size</p>
               <p className="font-medium text-gray-900">{viewingVariant.size}</p>
             </div>
@@ -469,10 +433,6 @@ export default function Page() {
                   ? `\u20B9${Number(viewingVariant.mockPrice).toFixed(2)}`
                   : "-"}
               </p>
-            </div>
-            <div>
-              <p className="text-xs uppercase text-gray-500">Barcode</p>
-              <p className="font-medium text-gray-900">{viewingVariant.barcode ?? "-"}</p>
             </div>
             <div>
               <p className="text-xs uppercase text-gray-500">Stock Quantity</p>

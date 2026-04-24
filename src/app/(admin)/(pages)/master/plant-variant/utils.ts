@@ -77,9 +77,9 @@ export const buildVariantPayload = (form: PlantVariantForm) => {
     plantId: Number(form.plantId),
     size: form.size,
     price: Number(form.price),
-    sku: form.sku.trim(),
   };
 
+  if (form.sku.trim()) payload.sku = form.sku.trim();
   if (form.mockPrice.trim()) payload.mockPrice = Number(form.mockPrice);
   if (form.quantity.trim()) payload.quantity = Number(form.quantity);
   if (form.minQuantity.trim()) payload.minQuantity = Number(form.minQuantity);
