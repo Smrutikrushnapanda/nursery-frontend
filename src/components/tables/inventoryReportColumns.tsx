@@ -1,6 +1,7 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
+import Badge from "@/components/ui/badge/Badge";
 
 export type InventoryItemData = {
   plantId: number
@@ -41,7 +42,11 @@ export function getInventoryReportColumns(): ColumnDef<InventoryItemData>[] {
       header: "Unit Price",
       cell: ({ row }) => (
         <span className="text-gray-700 dark:text-gray-300 font-medium">
-          ₹ {row.original.unitPrice.toLocaleString("en-IN")}
+          {new Intl.NumberFormat("en-IN", {
+            style: "currency",
+            currency: "INR",
+            maximumFractionDigits: 0,
+          }).format(row.original.unitPrice)}
         </span>
       ),
     },
@@ -53,7 +58,9 @@ export function getInventoryReportColumns(): ColumnDef<InventoryItemData>[] {
           <span className={`inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-sm font-medium ${
             row.original.stockQty > 10 
               ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 border border-green-200 dark:border-green-800"
-              : "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 border border-red-200 dark:border-red-800"
+              : row.original.stockQty > 0
+                ? "bg-warning-100 dark:bg-warning-900/30 text-warning-800 dark:text-warning-400 border border-warning-200 dark:border-warning-800"
+                : "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 border border-red-200 dark:border-red-800"
           }`}>
             {row.original.stockQty}
           </span>
@@ -61,11 +68,34 @@ export function getInventoryReportColumns(): ColumnDef<InventoryItemData>[] {
       ),
     },
     {
+      id: "status",
+      header: "Status",
+      cell: ({ row }) => {
+        const qty = row.original.stockQty;
+        const status = qty > 10 ? "In Stock" : qty > 0 ? "Low Stock" : "Out of Stock";
+        const colors = {
+          "In Stock": "success",
+          "Low Stock": "warning",
+          "Out of Stock": "error"
+        } as const;
+
+        return (
+          <Badge color={colors[status]} size="sm">
+            {status}
+          </Badge>
+        );
+      }
+    },
+    {
       accessorKey: "stockValue",
       header: "Stock Value",
       cell: ({ row }) => (
         <div className="font-bold text-brand-600 dark:text-brand-400">
-          ₹ {row.original.stockValue.toLocaleString("en-IN")}
+          {new Intl.NumberFormat("en-IN", {
+            style: "currency",
+            currency: "INR",
+            maximumFractionDigits: 0,
+          }).format(row.original.stockValue)}
         </div>
       ),
     },

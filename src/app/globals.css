@@ -291,13 +291,18 @@
 }
 
 @layer utilities {
-  /* For Remove Date Icon */
-  input[type="date"]::-webkit-inner-spin-button,
-  input[type="time"]::-webkit-inner-spin-button,
-  input[type="date"]::-webkit-calendar-picker-indicator,
-  input[type="time"]::-webkit-calendar-picker-indicator {
-    display: none;
-    -webkit-appearance: none;
+  /* Restore Date Icon and ensure cursor visibility */
+  input[type="date"] {
+    cursor: text;
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    display: block;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
   }
 }
 

@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { masterApis } from "@/utils/api/api";
+import { Filter, FilterField } from "@/components/common/Filter";
 import { initialForm, sizeOptions } from "./config";
 import {
   buildVariantPayload,
@@ -34,6 +35,48 @@ export default function Page() {
   const [deletingVariant, setDeletingVariant] = useState<PlantVariantItem | null>(null);
   const [viewingVariant, setViewingVariant] = useState<PlantVariantItem | null>(null);
   const [form, setForm] = useState<PlantVariantForm>(initialForm);
+  const [filters, setFilters] = useState<Record<string, any>>({});
+
+  const filterFields: FilterField[] = useMemo(() => [
+    {
+      id: "plant",
+      label: "Plant Name",
+      type: "text",
+      placeholder: "Search by plant..."
+    },
+    {
+      id: "size",
+      label: "Size",
+      type: "select",
+      options: sizeOptions.map(size => ({ value: size, label: size.replaceAll("_", " ") })),
+      placeholder: "All Sizes"
+    },
+    {
+      id: "stockStatus",
+      label: "Stock Status",
+      type: "select",
+      options: [
+        { value: "In Stock", label: "In Stock" },
+        { value: "Low Stock", label: "Low Stock" },
+        { value: "Out of Stock", label: "Out of Stock" }
+      ],
+      placeholder: "All Status"
+    }
+  ], []);
+
+  const filteredVariants = useMemo(() => {
+    return variants.filter(variant => {
+      const plantName = variant.plant?.name ?? "";
+      const size = variant.size;
+      const status = getVariantStatus(variant);
+
+      const plantMatch = !filters.plant || plantName.toLowerCase().includes(filters.plant.toLowerCase());
+      const sizeMatch = !filters.size || size === filters.size;
+      const statusMatch = !filters.stockStatus || status === filters.stockStatus;
+
+      return plantMatch && sizeMatch && statusMatch;
+    });
+  }, [variants, filters]);
 
   const fetchVariants = async () => {
     setLoading(true);
@@ -238,6 +281,12 @@ export default function Page() {
         </Button>
       </div>
 
+      <Filter 
+        fields={filterFields} 
+        onFilter={setFilters} 
+        title="Variant Filters"
+      />
+
       {error ? (
         <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
@@ -245,7 +294,7 @@ export default function Page() {
       ) : loading ? (
         <TableLoader message="Loading plant variant master data..." />
       ) : (
-        <DataTable columns={columns} data={variants} defaultPageSize={10} />
+        <DataTable columns={columns} data={filteredVariants} defaultPageSize={10} />
       )}
 
       <DashboardDialog

@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { DataTable } from "@/components/tables/DataTable"
-import { getScanSellColumns, DailyScan } from "@/components/tables/scanSellColumns"
+import { getScanActivityLabel, getScanSellColumns, DailyScan } from "@/components/tables/scanSellColumns"
 import { qrApis } from "@/utils/api/api"
 import { TableLoader } from "@/components/table-loader/table-loader"
 import { BarChart3, Scan, Leaf, Users } from "lucide-react"
+import { Filter, FilterField } from "@/components/common/Filter"
 
 export default function ScanSellPage() {
   const [data, setData] = useState<{
@@ -19,6 +20,24 @@ export default function ScanSellPage() {
   const [days, setDays] = useState(30)
   const [isCustom, setIsCustom] = useState(false)
   const [customValue, setCustomValue] = useState("30")
+  const [filters, setFilters] = useState<Record<string, any>>({})
+
+  const filterFields: FilterField[] = useMemo(
+    () => [
+      {
+        id: "activity",
+        label: "Activity",
+        type: "select",
+        options: [
+          { value: "Low Activity", label: "Low Activity" },
+          { value: "Moderate Activity", label: "Moderate Activity" },
+          { value: "High Activity", label: "High Activity" },
+        ],
+        placeholder: "All Activity",
+      },
+    ],
+    []
+  )
 
   const fetchScanAnalytics = async (selectedDays: number) => {
     if (isNaN(selectedDays) || selectedDays <= 0) return
@@ -63,6 +82,14 @@ export default function ScanSellPage() {
   }
 
   const columns = useMemo(() => getScanSellColumns(), [])
+  const filteredDailyScans = useMemo(() => {
+    const dailyScans = data?.dailyScans ?? []
+
+    return dailyScans.filter((item) => {
+      const activity = getScanActivityLabel(item.count)
+      return !filters.activity || activity === filters.activity
+    })
+  }, [data?.dailyScans, filters.activity])
 
   if (isLoading && !data) return <TableLoader message="Loading Scan Analytics..." />
 
@@ -183,6 +210,13 @@ export default function ScanSellPage() {
         <div className="p-4 2xl:p-6 border-b border-gray-100 dark:border-gray-700">
           <h2 className="text-lg 2xl:text-xl font-semibold text-gray-800 dark:text-white">Daily Scan Logs</h2>
         </div>
+        <div className="px-4 pt-4 2xl:px-6">
+          <Filter
+            fields={filterFields}
+            onFilter={setFilters}
+            title="Scan Filters"
+          />
+        </div>
         <div className="flex-1 relative">
           {isLoading && (
             <div className="absolute inset-0 z-10 bg-white/60 dark:bg-gray-800/60 backdrop-blur-[1px] flex items-center justify-center">
@@ -190,7 +224,7 @@ export default function ScanSellPage() {
             </div>
           )}
 
-          <DataTable columns={columns} data={data?.dailyScans ?? []} />
+          <DataTable columns={columns} data={filteredDailyScans} />
         </div>
       </div>
 

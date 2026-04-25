@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useAppStore } from "@/utils/store/store";
 
 const backend = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -8,6 +9,29 @@ export const api = axios.create({
         "Content-Type": "application/json",
     },
 });
+
+// Global Loader Interceptor
+api.interceptors.request.use((config) => {
+    if (config.headers?.["X-Global-Loader"] === "true") {
+        useAppStore.getState().setLoading(true);
+    }
+    return config;
+});
+
+api.interceptors.response.use(
+    (response) => {
+        if (response.config.headers?.["X-Global-Loader"] === "true") {
+            useAppStore.getState().setLoading(false);
+        }
+        return response;
+    },
+    (error) => {
+        if (error.config?.headers?.["X-Global-Loader"] === "true") {
+            useAppStore.getState().setLoading(false);
+        }
+        return Promise.reject(error);
+    }
+);
 
 const getApiError = (error: any) => {
     const responseData = error?.response?.data;
@@ -54,7 +78,10 @@ export const authApis = {
     logout: async () => {
         try {
             const { data } = await api.post("/auth/logout", {}, {
-                withCredentials: true
+                withCredentials: true,
+                headers: {
+                    "X-Global-Loader": "true"
+                }
             });
 
             return data
@@ -725,6 +752,47 @@ export const reportApis = {
             });
 
             return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    getLogReportFiltered: async (filters?: {
+        method?: string;
+        userId?: string;
+        status?: string;
+        endpoint?: string;
+        from?: string;
+        to?: string;
+        page?: string | number;
+        limit?: string | number;
+    }) => {
+        try {
+            // Clean filters to remove undefined, null or empty string values
+            const cleanFilters = filters ? Object.fromEntries(
+                Object.entries(filters).filter(([_, v]) => v !== undefined && v !== null && v !== "")
+            ) : {};
+
+            const { data } = await api.get("/log-report", {
+                params: cleanFilters,
+                withCredentials: true
+            })
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    getLogReports: async () => {
+        try {
+
+            const { data } = await api.get("/log-report/summary", {
+                withCredentials: true
+            })
+
+            return data;
+
         } catch (error) {
             throw getApiError(error);
         }

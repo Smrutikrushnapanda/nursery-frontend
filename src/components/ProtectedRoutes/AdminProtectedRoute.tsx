@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAppStore } from '@/utils/store/store'
 import { authApis } from '@/utils/api/api'
+import GlobalLoader from '../GlobalLoader'
 
 const AdminProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter()
@@ -36,7 +37,7 @@ const AdminProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }, [authorized, checking, hasHydrated, router])
 
   if (!hasHydrated || checking) {
-    return <div className='bg-background w-full h-screen'> Loading...</div>
+    return <div className='bg-background w-full h-screen'> <GlobalLoader /> </div>
   }
 
   return <>{children}</>

@@ -1,8 +1,6 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react"
-import { Button } from "@/components/ui/button"
 
 export type SalesItem = {
   id: string
@@ -14,50 +12,30 @@ export type SalesItem = {
   time: string
 }
 
-function getSortIcon(sortState: false | "asc" | "desc") {
-  if (sortState === "asc") return <ArrowUp className="size-4" />
-  if (sortState === "desc") return <ArrowDown className="size-4" />
-  return <ArrowUpDown className="size-4 opacity-60" />
-}
-
-function SortableHeader({ title, column }: any) {
-  return (
-    <Button
-      variant="ghost"
-      size="sm"
-      className="-ml-3 h-8 px-2"
-      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-    >
-      {title}
-      {getSortIcon(column.getIsSorted())}
-    </Button>
-  )
-}
-
 export const salesColumns: ColumnDef<SalesItem>[] = [
   {
     accessorKey: "plant",
-    header: ({ column }) => <SortableHeader title="Plant" column={column} />,
+    header: "Plant",
   },
   {
     accessorKey: "customer",
-    header: ({ column }) => <SortableHeader title="Customer" column={column} />,
+    header: "Customer",
   },
   {
     accessorKey: "quantity",
-    header: ({ column }) => <SortableHeader title="Qty" column={column} />,
+    header: "Qty",
   },
   {
     accessorKey: "amount",
-    header: ({ column }) => <SortableHeader title="Amount" column={column} />,
+    header: "Amount",
     cell: ({ row }) => `₹${row.original.amount}`,
   },
   {
     accessorKey: "payment",
-    header: ({ column }) => <SortableHeader title="Payment" column={column} />,
+    header: "Payment",
   },
   {
     accessorKey: "time",
-    header: ({ column }) => <SortableHeader title="Time" column={column} />,
+    header: "Time",
   },
 ]

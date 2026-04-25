@@ -23,7 +23,7 @@ export default function UserDropdown() {
     setLoading(true)
     try {
       try {
-        POST()
+        await POST()
         setLoggedIn(false);
       } catch (error) {
         console.error('Frontend cookie clear failed:', error)

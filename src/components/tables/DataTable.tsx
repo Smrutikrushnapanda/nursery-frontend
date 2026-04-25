@@ -81,7 +81,12 @@ export function DataTable<TData, TValue>({
   return (
     <div className="space-y-4">
       {/* Table Container */}
-      <div className="group relative overflow-visible rounded-2xl bg-white shadow-theme-md transition-all duration-500 hover:shadow-theme-xl">
+      <div className="group relative rounded-2xl bg-white shadow-theme-md transition-all duration-500 hover:shadow-theme-xl">
+        {/* Glow container to prevent horizontal scroll */}
+        <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
+          <div className="absolute -top-10 -right-10 h-20 w-20 rounded-full bg-brand-200/20 blur-2xl" />
+          <div className="absolute -bottom-10 -left-10 h-20 w-20 rounded-full bg-blue-light-200/20 blur-2xl" />
+        </div>
         {/* Subtle pattern overlay */}
         <div 
           className="absolute inset-0 opacity-[0.02]"
@@ -101,9 +106,7 @@ export function DataTable<TData, TValue>({
         {/* Top accent line */}
         <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-brand-500 via-brand-400 to-brand-300 rounded-t-2xl" />
         
-        {/* Decorative glows */}
-        <div className="absolute -top-10 -right-10 h-20 w-20 rounded-full bg-brand-200/20 blur-2xl" />
-        <div className="absolute -bottom-10 -left-10 h-20 w-20 rounded-full bg-blue-light-200/20 blur-2xl" />
+
 
         <div className="relative">
           <Table>
