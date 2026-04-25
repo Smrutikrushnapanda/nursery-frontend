@@ -7,9 +7,17 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
 })
 
-export default function WeekSalesChart() {
-  const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-  const salesData = [1240, 1890, 2150, 1780, 2420, 3100, 1950]
+interface WeekSalesChartProps {
+  categories?: string[];
+  data?: number[];
+}
+
+export default function WeekSalesChart({
+  categories = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+  data = [0, 0, 0, 0, 0, 0, 0]
+}: WeekSalesChartProps) {
+  const weekDays = categories
+  const salesData = data
   const totalSales = salesData.reduce((acc, curr) => acc + curr, 0)
   const peakIndex = salesData.indexOf(Math.max(...salesData))
 

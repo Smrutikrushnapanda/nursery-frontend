@@ -7,9 +7,17 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
 })
 
-export default function TodaySalesChart() {
-  const hours = ["9AM", "11AM", "1PM", "3PM", "5PM", "7PM"]
-  const salesData = [120, 240, 180, 320, 260, 400]
+interface TodaySalesChartProps {
+  categories?: string[];
+  data?: number[];
+}
+
+export default function TodaySalesChart({
+  categories = ["9AM", "11AM", "1PM", "3PM", "5PM", "7PM"],
+  data = [0, 0, 0, 0, 0, 0]
+}: TodaySalesChartProps) {
+  const hours = categories
+  const salesData = data
   const totalSales = salesData.reduce((acc, curr) => acc + curr, 0)
   const peakIndex = salesData.indexOf(Math.max(...salesData))
 

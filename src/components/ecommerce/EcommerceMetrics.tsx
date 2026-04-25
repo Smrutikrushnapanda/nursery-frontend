@@ -7,54 +7,66 @@ import {
   ShootingStarIcon,
 } from "@/icons"
 
-const metrics = [
-  {
-    title: "Total Plants",
-    value: "12,540",
-    icon: BoxIconLine,
-    trend: "+12%",
-    bgColor: "bg-brand-50",
-    iconColor: "text-brand-600",
-    borderColor: "border-brand-200",
-    gradientFrom: "from-brand-500",
-    gradientTo: "to-brand-300",
-  },
-  {
-    title: "Today's Sales",
-    value: "$1,240",
-    icon: DollarLineIcon,
-    trend: "+8%",
-    bgColor: "bg-success-50",
-    iconColor: "text-success-600",
-    borderColor: "border-success-200",
-    gradientFrom: "from-success-500",
-    gradientTo: "to-success-300",
-  },
-  {
-    title: "Sold Today",
-    value: "86",
-    icon: GroupIcon,
-    trend: "+5%",
-    bgColor: "bg-blue-light-50",
-    iconColor: "text-brand-500",
-    borderColor: "border-blue-light-200",
-    gradientFrom: "from-brand-500",
-    gradientTo: "to-brand-300",
-  },
-  {
-    title: "Total Inventory",
-    value: "8,320",
-    icon: ShootingStarIcon,
-    trend: "-3%",
-    bgColor: "bg-orange-50",
-    iconColor: "text-orange-600",
-    borderColor: "border-orange-200",
-    gradientFrom: "from-orange-500",
-    gradientTo: "to-orange-300",
-  },
-]
+interface EcommerceMetricsProps {
+  totalPlants: string | number;
+  todaySales: string | number;
+  soldToday: string | number;
+  totalInventory: string | number;
+}
 
-export const EcommerceMetrics = () => {
+export const EcommerceMetrics = ({
+  totalPlants = "0",
+  todaySales = "0",
+  soldToday = "0",
+  totalInventory = "0",
+}: EcommerceMetricsProps) => {
+  const metrics = [
+    {
+      title: "Total Plants",
+      value: totalPlants.toLocaleString(),
+      icon: BoxIconLine,
+      trend: "+0%",
+      bgColor: "bg-brand-50",
+      iconColor: "text-brand-600",
+      borderColor: "border-brand-200",
+      gradientFrom: "from-brand-500",
+      gradientTo: "to-brand-300",
+    },
+    {
+      title: "Today's Sales",
+      value: `₹${Number(todaySales).toLocaleString()}`,
+      icon: DollarLineIcon,
+      trend: "+0%",
+      bgColor: "bg-success-50",
+      iconColor: "text-success-600",
+      borderColor: "border-success-200",
+      gradientFrom: "from-success-500",
+      gradientTo: "to-success-300",
+    },
+    {
+      title: "Sold Today",
+      value: soldToday.toLocaleString(),
+      icon: GroupIcon,
+      trend: "+0%",
+      bgColor: "bg-blue-light-50",
+      iconColor: "text-brand-500",
+      borderColor: "border-blue-light-200",
+      gradientFrom: "from-brand-500",
+      gradientTo: "to-brand-300",
+    },
+    {
+      title: "Total Inventory",
+      value: totalInventory.toLocaleString(),
+      icon: ShootingStarIcon,
+      trend: "+0%",
+      bgColor: "bg-orange-50",
+      iconColor: "text-orange-600",
+      borderColor: "border-orange-200",
+      gradientFrom: "from-orange-500",
+      gradientTo: "to-orange-300",
+    },
+  ]
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 md:gap-6">
       {metrics.map((metric) => {
