@@ -7,11 +7,58 @@ import { getPaymentColumns, PaymentItem } from "@/components/tables/paymentColum
 import { paymentApis } from "@/utils/api/api";
 import { TableLoader } from "@/components/table-loader/table-loader";
 import Badge from "@/components/ui/badge/Badge";
+import { Filter, FilterField } from "@/components/common/Filter";
+
+const formatDateValue = (date: string) => {
+  const parsedDate = new Date(date);
+  const year = parsedDate.getFullYear();
+  const month = String(parsedDate.getMonth() + 1).padStart(2, "0");
+  const day = String(parsedDate.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
 
 export default function PaymentsPage() {
   const [payments, setPayments] = useState<PaymentItem[]>([]);
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [viewingPayment, setViewingPayment] = useState<PaymentItem | null>(null);
+  const [filters, setFilters] = useState<Record<string, any>>({});
+
+  const filterFields: FilterField[] = useMemo(
+    () => [
+      {
+        id: "method",
+        label: "Method",
+        type: "select",
+        options: [
+          { value: "CASH", label: "Cash" },
+          { value: "UPI", label: "UPI" },
+          { value: "CARD", label: "Card" },
+          { value: "BANK_TRANSFER", label: "Bank Transfer" },
+        ],
+        placeholder: "All Methods",
+      },
+      {
+        id: "status",
+        label: "Status",
+        type: "select",
+        options: [
+          { value: "PENDING", label: "Pending" },
+          { value: "COMPLETED", label: "Completed" },
+          { value: "FAILED", label: "Failed" },
+          { value: "REFUNDED", label: "Refunded" },
+        ],
+        placeholder: "All Statuses",
+      },
+      {
+        id: "date",
+        label: "Date",
+        type: "date",
+        placeholder: "Select Date",
+      },
+    ],
+    []
+  );
 
   const fetchPayments = async () => {
     setIsPageLoading(true);
@@ -40,6 +87,17 @@ export default function PaymentsPage() {
     []
   );
 
+  const filteredPayments = useMemo(() => {
+    return (payments ?? []).filter((payment) => {
+      const methodMatch = !filters.method || payment.method === filters.method;
+      const statusMatch = !filters.status || payment.status === filters.status;
+      const paymentDate = formatDateValue(payment.createdAt);
+      const dateMatch = !filters.date || paymentDate === filters.date;
+
+      return methodMatch && statusMatch && dateMatch;
+    });
+  }, [payments, filters]);
+
   if (isPageLoading) return <TableLoader message="Loading Payments..." />;
 
   return (
@@ -48,7 +106,13 @@ export default function PaymentsPage() {
         <h1 className="text-xl font-semibold text-gray-800 dark:text-white/90">Payments</h1>
       </div>
 
-      <DataTable columns={columns} data={payments ?? []} />
+      <Filter
+        fields={filterFields}
+        onFilter={setFilters}
+        title="Payment Filters"
+      />
+
+      <DataTable columns={columns} data={filteredPayments} />
 
       <DashboardDialog
         isOpen={Boolean(viewingPayment)}

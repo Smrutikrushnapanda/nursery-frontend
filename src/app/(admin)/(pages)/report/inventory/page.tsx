@@ -100,13 +100,6 @@ export default function InventoryReportsPage() {
         </div>
       </div>
 
-      {/* Filters */}
-      <Filter 
-        fields={filterFields} 
-        onFilter={setFilters} 
-        title="Inventory Filters"
-      />
-
       {/* Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
@@ -162,7 +155,14 @@ export default function InventoryReportsPage() {
              </span>
           )}
         </div>
-        <div className="flex-1 relative">
+        <div className="px-4 pt-4 2xl:px-6">
+          <Filter
+            fields={filterFields}
+            onFilter={setFilters}
+            title="Inventory Filters"
+          />
+        </div>
+        <div className="flex-1 relative pt-4 2xl:pt-6">
           <DataTable columns={columns} data={filteredData} />
         </div>
       </div>
