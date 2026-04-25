@@ -1,120 +1,118 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ColumnDef } from "@tanstack/react-table";
-import { Plus, Pencil, Trash2, Shapes } from "lucide-react";
+import { DashboardConfirmDialog } from "@/components/common/DashboardConfirmDialog";
 import { DataTable } from "@/components/tables/DataTable";
-import Badge from "@/components/ui/badge/Badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Modal } from "@/components/ui/modal";
 import { masterApis } from "@/utils/api/api";
-
-type CategoryItem = {
-  id: number;
-  name: string;
-  description?: string | null;
-  status: boolean;
-  organizationId?: string | null;
-  created_at?: string;
-  updated_at?: string;
-};
-
-type CategoryForm = {
-  name: string;
-  description: string;
-};
-
-const initialForm: CategoryForm = {
-  name: "",
-  description: "",
-};
-
-const formatDate = (value?: string) => {
-  if (!value) {
-    return "-";
-  }
-
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    return "-";
-  }
-
-  return parsed.toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-};
+import { useAppStore } from "@/utils/store/store";
+import { initialForm } from "./config";
+import { SubcategoryForm, SubcategoryItem } from "./types";
+import { normalizeSubCategory } from "./utils";
+import { getSubCategoryColumns } from "@/components/sub-categories/subCategoryColumns";
+import { SubCategoryToolbar } from "@/components/sub-categories/SubCategoryToolbar";
+import { SubCategoryFormDialog } from "@/components/sub-categories/SubCategoryFormDialog";
+import { TableLoader } from "@/components/table-loader/table-loader";
 
 export default function Page() {
-  const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [subCategories, setSubCategories] = useState<SubcategoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
-  const [deletingCategory, setDeletingCategory] = useState<CategoryItem | null>(null);
-  const [form, setForm] = useState<CategoryForm>(initialForm);
+  const [editingSubCategoryId, setEditingSubCategoryId] = useState<number | null>(null);
+  const [deletingSubCategory, setDeletingSubCategory] = useState<SubcategoryItem | null>(null);
+  const [form, setForm] = useState<SubcategoryForm>(initialForm);
+  const { masterCategories, setMasterCategories } = useAppStore();
 
   const fetchCategories = async () => {
+    try {
+      const response = await masterApis.getCategories();
+      setMasterCategories(Array.isArray(response?.data?.data) ? response.data.data : []);
+    } catch (error: any) {
+      alert(error.message);
+    }
+  };
+
+  useEffect(() => {
+    if (!Array.isArray(masterCategories) || masterCategories.length === 0) {
+      fetchCategories();
+    }
+  }, []);
+
+  const categoryOptions = useMemo(
+    () =>
+      Array.from(
+        new Map(
+          (Array.isArray(masterCategories) ? masterCategories : [])
+            .filter((item) => (item?.id ?? item?.categoryId) && (item?.name ?? item?.categoryName))
+            .map((item) => [
+              item?.id ?? item?.categoryId,
+              {
+                id: item?.id ?? item?.categoryId,
+                name: item?.name ?? item?.categoryName,
+              },
+            ])
+        ).values()
+      ),
+    [masterCategories]
+  );
+
+  const fetchPageData = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await masterApis.getCategories();
-      setCategories(Array.isArray(response?.data) ? response.data : []);
+      const subCategoriesResponse = await masterApis.getSubCategories();
+      setSubCategories(
+        Array.isArray(subCategoriesResponse?.data)
+          ? subCategoriesResponse.data.map(normalizeSubCategory)
+          : []
+      );
     } catch (err: any) {
       console.log(err);
-      setError(err?.message || "Failed to load categories");
+      setError(err?.message || "Failed to load sub-categories");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCategories();
+    fetchPageData();
   }, []);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const resetForm = () => {
     setForm(initialForm);
-    setEditingCategoryId(null);
+    setEditingSubCategoryId(null);
     setIsFormOpen(false);
   };
 
   const handleAddClick = () => {
     setForm(initialForm);
-    setEditingCategoryId(null);
+    setEditingSubCategoryId(null);
     setIsFormOpen(true);
   };
 
-  const handleEdit = (category: CategoryItem) => {
+  const handleEdit = (subCategory: SubcategoryItem) => {
     setForm({
-      name: category.name ?? "",
-      description: category.description ?? "",
+      name: subCategory.name ?? "",
+      categoryId: subCategory.categoryId ? subCategory.categoryId.toString() : "",
     });
-    setEditingCategoryId(category.id);
+    setEditingSubCategoryId(subCategory.id);
     setIsFormOpen(true);
   };
 
-  const handleDelete = async (category: CategoryItem) => {
+  const handleDelete = async (subCategory: SubcategoryItem) => {
     try {
-
-      await masterApis.deleteCategory(category.id.toString());
-      await fetchCategories();
-      setDeletingCategory(null);
+      await masterApis.deleteSubCategory(subCategory.id);
+      await fetchPageData();
+      setDeletingSubCategory(null);
     } catch (err: any) {
       console.log(err);
-      alert(err?.message || "Failed to delete category");
+      alert(err?.message || "Failed to delete sub-category");
     }
   };
 
@@ -123,228 +121,78 @@ export default function Page() {
     setSaving(true);
 
     try {
-      if (editingCategoryId !== null) {
-        await masterApis.updateCategory(editingCategoryId, form);
+      const payload = {
+        name: form.name.trim(),
+        categoryId: Number(form.categoryId),
+      };
+
+      if (editingSubCategoryId !== null) {
+        await masterApis.updateSubCategory(editingSubCategoryId, payload);
       } else {
-        await masterApis.createCategory(form);
+        await masterApis.createSubCategory(payload);
       }
 
-      await fetchCategories();
+      await fetchPageData();
       resetForm();
     } catch (err: any) {
       console.log(err);
-      alert(err?.message || "Failed to save category");
+      alert(err?.message || "Failed to save sub-category");
     } finally {
       setSaving(false);
     }
   };
 
-  const columns = useMemo<ColumnDef<CategoryItem>[]>(
-    () => [
-      {
-        accessorKey: "id",
-        header: "ID",
-      },
-      {
-        accessorKey: "name",
-        header: "Category Name",
-        cell: ({ row }) => (
-          <span className="font-semibold text-gray-900">{row.original.name}</span>
-        ),
-      },
-      {
-        accessorKey: "description",
-        header: "Description",
-        cell: ({ row }) => (
-          <span className="block max-w-xs truncate text-gray-600">
-            {row.original.description || "-"}
-          </span>
-        ),
-      },
-      {
-        accessorKey: "status",
-        header: "Status",
-        cell: ({ row }) => (
-          <Badge size="sm" color={row.original.status ? "success" : "light"}>
-            {row.original.status ? "Active" : "Inactive"}
-          </Badge>
-        ),
-      },
-      {
-        accessorKey: "created_at",
-        header: "Created",
-        cell: ({ row }) => <span>{formatDate(row.original.created_at)}</span>,
-      },
-      {
-        accessorKey: "updated_at",
-        header: "Updated",
-        cell: ({ row }) => <span>{formatDate(row.original.updated_at)}</span>,
-      },
-      {
-        id: "actions",
-        header: "Actions",
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              size="icon"
-              variant="outline"
-              className="h-8 w-8 rounded-lg"
-              onClick={() => handleEdit(row.original)}
-              aria-label={`Edit ${row.original.name}`}
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-            <Button
-              type="button"
-              size="icon"
-              variant="outline"
-              className="h-8 w-8 rounded-lg border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
-              onClick={() => setDeletingCategory(row.original)}
-              aria-label={`Delete ${row.original.name}`}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        ),
-      },
-    ],
+  const columns = useMemo(
+    () =>
+      getSubCategoryColumns({
+        onEdit: handleEdit,
+        onDelete: setDeletingSubCategory,
+      }),
     []
   );
 
   return (
     <div className="space-y-6">
-        <div className=" w-full flex justify-end">
-
-            <Button onClick={handleAddClick} className="rounded p-2">
-              <Plus className="h-4 w-4" />
-              Add Category
-            </Button>
-        </div>
-
+      <SubCategoryToolbar onAddClick={handleAddClick} />
 
       {error ? (
         <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
         </div>
       ) : loading ? (
-        <div className="flex min-h-[260px] items-center justify-center rounded-2xl border-2 border-brand-200/40 bg-white">
-          <div className="text-center">
-            <div className="mx-auto h-10 w-10 animate-spin rounded-full border-b-2 border-brand-600" />
-            <p className="mt-3 text-sm text-gray-500">Loading category master data...</p>
-          </div>
-        </div>
+       <TableLoader message="Loading sub-categories..." />
       ) : (
-        <DataTable columns={columns} data={categories} defaultPageSize={10} />
+        <DataTable columns={columns} data={subCategories} defaultPageSize={10} />
       )}
 
-      <Modal
+      <SubCategoryFormDialog
         isOpen={isFormOpen}
+        isEditing={editingSubCategoryId !== null}
+        form={form}
+        saving={saving}
+        categoryOptions={categoryOptions}
         onClose={resetForm}
-        className="mx-4 max-w-2xl p-6 sm:p-8"
-      >
-        <div className="space-y-5">
-          <div className="pr-12">
-            <h2 className="text-2xl font-bold text-brand-800">
-              {editingCategoryId !== null ? "Edit Category" : "Add Category"}
-            </h2>
-            <p className="mt-1 text-sm text-gray-500">
-              {editingCategoryId !== null
-                ? "Update the selected category details."
-                : "Create a new category for your nursery master data."}
-            </p>
-          </div>
+        onInputChange={handleInputChange}
+        onCategoryChange={(value) => setForm((prev) => ({ ...prev, categoryId: value }))}
+        onSubmit={handleSubmit}
+      />
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="name">
-                Category Name <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="name"
-                name="name"
-                value={form.name}
-                onChange={handleInputChange}
-                placeholder="e.g., Indoor Plants"
-                required
-                className="rounded-xl"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                name="description"
-                value={form.description}
-                onChange={handleInputChange}
-                placeholder="Describe what this category is used for"
-                rows={4}
-                className="rounded-xl"
-              />
-            </div>
-
-            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                className="rounded-xl"
-                onClick={resetForm}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={saving} className="rounded-xl">
-                {saving
-                  ? editingCategoryId !== null
-                    ? "Updating..."
-                    : "Adding..."
-                  : editingCategoryId !== null
-                    ? "Update Category"
-                    : "Add Category"}
-              </Button>
-            </div>
-          </form>
-        </div>
-      </Modal>
-
-      <Modal
-        isOpen={Boolean(deletingCategory)}
-        onClose={() => setDeletingCategory(null)}
-        className="mx-4 max-w-md p-6 sm:p-8"
-      >
-        <div className="space-y-5">
-          <div className="pr-12">
-            <h2 className="text-2xl font-bold text-red-700">Delete Category</h2>
-            <p className="mt-2 text-sm text-gray-600">
-              {deletingCategory
-                ? `This will soft delete "${deletingCategory.name}". You can’t undo this from the table.`
-                : "This action will delete the selected category."}
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              className="rounded-xl"
-              onClick={() => setDeletingCategory(null)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              className="rounded-xl bg-red-600 hover:bg-red-700"
-              onClick={() => {
-                if (deletingCategory) {
-                  void handleDelete(deletingCategory);
-                }
-              }}
-            >
-              Delete
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      <DashboardConfirmDialog
+        isOpen={Boolean(deletingSubCategory)}
+        onClose={() => setDeletingSubCategory(null)}
+        onConfirm={() => {
+          if (deletingSubCategory) {
+            void handleDelete(deletingSubCategory);
+          }
+        }}
+        title="Delete Sub Category"
+        description={
+          deletingSubCategory
+            ? `This will delete "${deletingSubCategory.name}". You can't undo this from the table.`
+            : "This action will delete the selected sub-category."
+        }
+        confirmLabel="Delete"
+      />
     </div>
   );
 }

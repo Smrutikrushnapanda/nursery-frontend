@@ -8,10 +8,12 @@ interface AppState {
   organization: any | null;
   businessTypes: any | null;
   categories: any | null;
+  masterCategories: any|null;
   isLoading: boolean;
   hasHydrated: boolean;
   stocks: any | null;
   plants: any | null;
+  isLoggedin: boolean;
   setUser: (user: any) => void;
   setToken: (token: string) => void;
   setMenu: (menu: any) => void;
@@ -22,6 +24,8 @@ interface AppState {
   setHydration: (hasHydrated: boolean) => void;
   setStocks: (stocks: any) => void;
   setPlants: (plants: any)=> void;
+  setMasterCategories: (masterCategories: any)=> void;
+  setLoggedIn : (isLoggedin: boolean)=> void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -37,6 +41,8 @@ export const useAppStore = create<AppState>()(
       hasHydrated: false,
       stocks: null,
       plants: null,
+      masterCategories: null,
+      isLoggedin: false,
       setUser: (user) => set({ user }),
       setToken: (token) => set({ token }),
       setMenu: (menu) => set({ menu }),
@@ -46,12 +52,20 @@ export const useAppStore = create<AppState>()(
       setLoading: (isLoading) => set({ isLoading }),
       setHydration: (hasHydrated) => set({ hasHydrated }),
       setStocks: (stocks)=> set({stocks}),
-      setPlants: (plants)=> set({plants})
+      setPlants: (plants)=> set({plants}),
+      setMasterCategories: (masterCategories)=> set({masterCategories}),
+      setLoggedIn: (isLoggedin)=> set({isLoggedin})
     }),
     {
       name: 'nursery-storage',
-      storage: createJSONStorage(() => localStorage), 
-       onRehydrateStorage: () => (state) => {
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) =>
+        Object.fromEntries(
+          Object.entries(state).filter(
+            ([key]) => !["isLoading", "hasHydrated"].includes(key)
+          )
+        ) as AppState,
+      onRehydrateStorage: () => (state) => {
         state?.setHydration(true)
       },
     }

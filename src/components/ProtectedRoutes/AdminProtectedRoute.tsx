@@ -5,7 +5,7 @@ import { authApis } from '@/utils/api/api'
 
 const AdminProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter()
-  const { hasHydrated } = useAppStore()
+  const { hasHydrated, setLoggedIn } = useAppStore()
   const [checking, setChecking] = useState(true)
   const [authorized, setAuthorized] = useState(false)
 
@@ -15,6 +15,7 @@ const AdminProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     const verifyLoggedin = async () => {
       try {
         const response = await authApis.verify()
+        setLoggedIn(response.data.authenticated);
         setAuthorized(Boolean(response.data.authenticated))
       } catch {
         setAuthorized(false)

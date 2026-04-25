@@ -81,7 +81,7 @@ export function DataTable<TData, TValue>({
   return (
     <div className="space-y-4">
       {/* Table Container */}
-      <div className="group relative overflow-hidden rounded-2xl bg-white shadow-theme-md transition-all duration-500 hover:shadow-theme-xl">
+      <div className="group relative overflow-visible rounded-2xl bg-white shadow-theme-md transition-all duration-500 hover:shadow-theme-xl">
         {/* Subtle pattern overlay */}
         <div 
           className="absolute inset-0 opacity-[0.02]"

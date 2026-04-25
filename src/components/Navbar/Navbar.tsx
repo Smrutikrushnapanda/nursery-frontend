@@ -1,81 +1,177 @@
 "use client";
 import Link from 'next/link'
+import { usePathname } from 'next/navigation';
 import { Menu, X } from "lucide-react";
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { authApis } from '@/utils/api/api';
+import { useAppStore } from '@/utils/store/store';
 
 const Navbar = () => {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+  const links = [
+    { label: "Home", href: "/home" },
+    { label: "Pricing", href: "/pricing" },
+    { label: "Contact", href: "/contact" }
+  ];
+  const { isLoggedin, setLoggedIn } = useAppStore();
 
-    const [open, setOpen] = useState(false);
-  const links = ["Home", "Pricing", "Contact"];
+  const verifyUser = async () => {
+    try {
+      const response = await authApis.verify();
+      if (response?.data.authenticated) {
+        setLoggedIn(true);
+      }
+    } catch (error) {
+      // User is not authenticated or token expired - swallow the 401
+      setLoggedIn(false);
+    }
+  }
+
+  useEffect(() => {
+    verifyUser()
+  }, [])
 
   return (
-     <header className="absolute top-0 left-0 right-0 z-30">
-      <div className="mx-auto px-4 sm:px-6 lg:px-10 flex items-center justify-between">
-        <div className="flex items-center gap-2  bg-brand-700 text-primary-foreground rounded px-5 py-3 -ml-4 sm:-ml-6">
-          <Leaf />
-          <span className="font-outfit text-xl font-semibold">Plant</span>
+    <header className="fixed top-0 w-full z-50">
+      <div className="w-full bg-white/70 backdrop-blur-xl border-b border-white/40 shadow-sm transition-all duration-300">
+        <div className="w-full px-6 lg:px-12 py-4 flex items-center justify-between">
+
+          {/* Logo */}
+          <Link href="/home" className="flex items-center gap-2 2xl:gap-3 bg-brand-600 text-white rounded-2xl px-5 py-2.5 shadow-md shadow-brand-600/20 hover:shadow-lg hover:shadow-brand-600/30 hover:-translate-y-0.5 transition-all duration-300 group">
+            <Leaf className="w-5 h-5 xl:w-6 xl:h-6 group-hover:rotate-12 transition-transform duration-300" />
+            <span className="font-outfit text-lg xl:text-xl font-bold tracking-wide">PlantScan</span>
+          </Link>
+
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex items-center gap-2 lg:gap-4">
+            {links.map((link) => {
+              const isActive = pathname === link.href || (link.href !== '/' && pathname?.startsWith(link.href));
+              return (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  className={`relative font-medium text-[15px] transition-all duration-300 px-4 py-2 rounded-xl ${isActive
+                      ? "text-brand-700 bg-brand-50/80 shadow-sm border border-brand-100/50"
+                      : "text-gray-600 hover:text-brand-700 hover:bg-gray-50 border border-transparent"
+                    }`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Desktop Actions */}
+          {!isLoggedin ? (
+            <div className="hidden md:flex items-center gap-3">
+              <Link
+                href="/signin"
+                className="text-[15px] font-semibold text-gray-700 hover:text-brand-700 transition-colors px-4 py-2 rounded-xl hover:bg-gray-50"
+              >
+                Login
+              </Link>
+              <Link
+                href="/signup"
+                className="bg-brand-600 text-white rounded-xl px-6 py-2.5 text-[15px] font-semibold hover:bg-brand-700 hover:shadow-[0_8px_20px_-6px_rgba(22,163,74,0.4)] hover:-translate-y-0.5 transition-all duration-300 border border-brand-500"
+              >
+                Get Started
+              </Link>
+            </div>
+          ) : (
+            <Link
+              href="/dashboard"
+              className="hidden md:flex items-center justify-center px-6 py-2.5 rounded-xl bg-brand-600 text-white font-semibold hover:bg-brand-700 hover:shadow-[0_8px_20px_-6px_rgba(22,163,74,0.4)] hover:-translate-y-0.5 transition-all duration-300"
+            >
+              Dashboard
+            </Link>
+          )}
+
+          {/* Mobile Menu Toggle */}
+          <button
+            className="md:hidden p-2.5 text-brand-800 bg-brand-50 rounded-xl hover:bg-brand-100 transition-colors"
+            onClick={() => setOpen(!open)}
+            aria-label="Menu"
+          >
+            {open ? <X size={22} /> : <Menu size={22} />}
+          </button>
         </div>
-        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-foreground/80">
-          {links.map((l, i) => (
-            <a key={l} href="#" className={`${i === 0 ? "text-brand-700 font-semibold" : "hover:text-primary text-gray-500"} `}>{l}</a>
-          ))}
-        </nav>
-        <div className="hidden md:flex items-center gap-4">
-          <button className="text-sm font-medium text-primary hover:text-brand-700">Login</button>
-          <button className="bg-primary text-primary-foreground rounded-full px-5 py-2 text-sm font-medium hover:bg-brand-700 transition">Sign Up</button>
-        </div>
-        <button className="md:hidden p-2 text-primary" onClick={() => setOpen(!open)} aria-label="Menu">
-          {open ? <X size={24} /> : <Menu size={24} />}
-        </button>
       </div>
-      
+
       {/* Mobile Menu Overlay */}
-      <div 
-        className={`fixed inset-0 bg-black/50 transition-opacity duration-300 md:hidden ${
-          open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
+      <div
+        className={`fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 md:hidden z-40 ${open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          }`}
         onClick={() => setOpen(false)}
       />
-      
+
       {/* Mobile Menu Sidebar */}
-      <div 
-        className={`fixed top-0 left-0 h-full w-64 bg-primary border-r border-border shadow-xl transform transition-transform duration-300 ease-in-out md:hidden ${
-          open ? 'translate-x-0' : '-translate-x-full'
-        }`}
+      <div
+        className={`fixed top-0 right-0 h-full w-[280px] bg-white border-l border-gray-100 shadow-2xl transform transition-transform duration-300 ease-out md:hidden z-50 ${open ? 'translate-x-0' : 'translate-x-full'
+          }`}
       >
-        <div className="px-6 py-4 space-y-6">
-          {/* Logo in sidebar */}
-          <div className="flex items-center gap-2 text-primary-foreground pb-4 border-b border-accent/20">
-            <Leaf />
-            <span className="font-outfit text-xl font-semibold">Plant</span>
+        <div className="flex flex-col h-full">
+          {/* Mobile Header */}
+          <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+            <div className="flex items-center gap-2 text-brand-700">
+              <Leaf size={24} />
+              <span className="font-outfit text-xl font-bold tracking-wide">PlantScan</span>
+            </div>
+            <button
+              className="p-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+              onClick={() => setOpen(false)}
+            >
+              <X size={20} />
+            </button>
           </div>
-          
-          {/* Links */}
-          <nav className="space-y-3">
-            {links.map((l) => (
-              <a 
-                key={l} 
-                href="#" 
-                className="block text-accent text-sm font-medium hover:text-accent/80 transition py-2"
-                onClick={() => setOpen(false)}
+
+          {/* Mobile Links */}
+          <div className="px-6 py-8 space-y-2 flex-1 overflow-y-auto">
+            {links.map((link) => {
+              const isActive = pathname === link.href || (link.href !== '/' && pathname?.startsWith(link.href));
+              return (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  className={`block px-4 py-3 rounded-xl text-[15px] transition-all duration-200 ${isActive
+                      ? "bg-brand-50 text-brand-700 font-bold border border-brand-100/50"
+                      : "text-gray-600 font-medium hover:bg-gray-50 hover:text-brand-600"
+                    }`}
+                  onClick={() => setOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              )
+            })}
+          </div>
+
+          {/* Mobile Footer Actions */}
+          <div className="px-6 py-6 border-t border-gray-100 bg-gray-50/50 space-y-3">
+            {!isLoggedin ? (
+              <>
+                <Link
+                  href="/signin"
+                  className="flex items-center justify-center w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-[15px] font-semibold text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-200"
+                  onClick={() => setOpen(false)}
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/signup"
+                  className="flex items-center justify-center w-full px-4 py-3 bg-brand-600 text-white rounded-xl text-[15px] font-semibold hover:bg-brand-700 hover:shadow-lg hover:shadow-brand-600/30 transition-all duration-200"
+                  onClick={() => setOpen(false)}
+                >
+                  Get Started
+                </Link>
+              </>
+            ) : (
+              <Link
+                href="/dashboard"
+                className="flex items-center justify-center w-full px-4 py-3 bg-brand-600 text-white rounded-xl text-[15px] font-semibold hover:bg-brand-700 transition-all duration-200"
               >
-                {l}
-              </a>
-            ))}
-          </nav>
-          
-          {/* Buttons */}
-          <div className="space-y-3 pt-4">
-            <Link href="/signin" onClick={() => setOpen(false)}>
-              <button className="w-full my-2 border border-accent rounded-full py-2 text-sm text-accent hover:bg-accent/10 transition">
-                Login
-              </button>
-            </Link>
-            <Link href="/signup" onClick={() => setOpen(false)}>
-              <button className="w-full my-2 border-accent border bg-accent text-primary rounded-full py-2 text-sm hover:bg-accent/90 transition">
-                Sign Up
-              </button>
-            </Link>
+                Go to Dashboard
+              </Link>
+            )}
           </div>
         </div>
       </div>

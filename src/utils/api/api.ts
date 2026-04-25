@@ -41,17 +41,7 @@ export const authApis = {
     login: async (formData: any) => {
         try {
 
-            const { data } = await api.post("/auth/login", formData);
-
-            return data
-        } catch (error: any) {
-            throw getApiError(error);
-        }
-    },
-
-    logout: async () => {
-        try {
-            const { data } = await api.post("/auth/logout", null, {
+            const { data } = await api.post("/auth/login", formData, {
                 withCredentials: true
             });
 
@@ -61,14 +51,26 @@ export const authApis = {
         }
     },
 
-    verify: async()=>{
+    logout: async () => {
         try {
-            
-        const { data } = await api.get("/auth/verify", {
-            withCredentials: true
-        });
+            const { data } = await api.post("/auth/logout", {}, {
+                withCredentials: true
+            });
 
-        return data
+            return data
+        } catch (error: any) {
+            throw getApiError(error);
+        }
+    },
+
+    verify: async () => {
+        try {
+
+            const { data } = await api.get("/auth/verify", {
+                withCredentials: true
+            });
+
+            return data
         } catch (error) {
             throw getApiError(error);
         }
@@ -96,7 +98,7 @@ export const authApis = {
         }
     },
 
-    getSubCategories: async (id: number) => {
+    getSubCategories: async (id?: number) => {
         try {
             const { data } = await api.get("/register/sub-categories?categoryId=" + id)
 
@@ -105,7 +107,7 @@ export const authApis = {
             throw getApiError(error);
         }
     },
-    
+
 
 }
 
@@ -148,7 +150,9 @@ export const masterApis = {
     getMenu: async () => {
         try {
 
-            const { data } = await api.get("/master/menus");
+            const { data } = await api.get("/master/menus", {
+                headers: { 'X-Global-Loader': 'true' }
+            });
 
             return data;
 
@@ -157,10 +161,10 @@ export const masterApis = {
         }
     },
 
-    createMenu : async (menu: any) => {
+    createMenu: async (menu: any) => {
         try {
 
-            const {data} = await api.post("/master/menus", menu, {
+            const { data } = await api.post("/master/menus", menu, {
                 withCredentials: true
             });
 
@@ -171,9 +175,9 @@ export const masterApis = {
         }
     },
 
-    getMenuById: async (id: number)=>{
+    getMenuById: async (id: number) => {
         try {
-            const {data} = await api.get(`/master/menus/${id}`, {
+            const { data } = await api.get(`/master/menus/${id}`, {
                 withCredentials: true
             });
 
@@ -183,9 +187,9 @@ export const masterApis = {
         }
     },
 
-    updateMenu: async(id: number, newMenu: any)=>{
+    updateMenu: async (id: number, newMenu: any) => {
         try {
-            const {data} = await api.put(`/master/menus/${id}`, newMenu, {
+            const { data } = await api.put(`/master/menus/${id}`, newMenu, {
                 withCredentials: true
             });
 
@@ -195,9 +199,9 @@ export const masterApis = {
         }
     },
 
-    deleteMenu: async(id: number)=>{
+    deleteMenu: async (id: number) => {
         try {
-            const {data} = await api.delete(`/master/menus/${id}`, {
+            const { data } = await api.delete(`/master/menus/${id}`, {
                 withCredentials: true
             });
 
@@ -208,9 +212,11 @@ export const masterApis = {
     },
 
     //Master apis for plants
-    getAllPlants: async()=>{
+    getAllPlants: async () => {
         try {
-            const {data} = await api.get("/master/plant");
+            const { data } = await api.get("/master/plant", {
+                withCredentials: true
+            });
 
             return data
         } catch (error) {
@@ -218,9 +224,11 @@ export const masterApis = {
         }
     },
 
-    getPlantById: async(id: number)=>{
+    getPlantById: async (id: number) => {
         try {
-            const {data} = await api.get(`/master/plant/${id}`);
+            const { data } = await api.get(`/master/plant/${id}`, {
+                withCredentials: true
+            });
 
             return data
         } catch (error) {
@@ -228,11 +236,11 @@ export const masterApis = {
         }
     },
 
-    createPlant: async(plant: any)=>{
+    createPlant: async (plant: any) => {
         try {
-            
-            const {data} = await api.post("/master/plant", plant, {
-                headers:{
+
+            const { data } = await api.post("/master/plant", plant, {
+                headers: {
                     "Content-Type": "multipart/form-data"
                 },
                 withCredentials: true
@@ -244,10 +252,12 @@ export const masterApis = {
         }
     },
 
-    updatePlant: async(id: number, newPlant: any)=>{
+    updatePlant: async (id: number, newPlant: any) => {
         try {
 
-            const {data} = await api.patch(`/master/plant/${id}`, newPlant);
+            const { data } = await api.patch(`/master/plant/${id}`, newPlant, {
+                withCredentials: true
+            });
 
             return data
 
@@ -255,10 +265,10 @@ export const masterApis = {
             throw getApiError(error);
         }
     },
-    
-    deletePlant: async(id: number)=>{
+
+    deletePlant: async (id: number) => {
         try {
-            const {data} = await api.delete(`/master/plant/${id}`, {
+            const { data } = await api.delete(`/master/plant/${id}`, {
                 withCredentials: true
             });
 
@@ -269,9 +279,11 @@ export const masterApis = {
     },
 
     //Master api plant variants
-    getAllPlantVariants: async()=>{
+    getAllPlantVariants: async () => {
         try {
-            const {data} = await api.get("/master/plant-variant");
+            const { data } = await api.get("/master/plant-variant", {
+                withCredentials: true
+            });
 
             return data
         } catch (error) {
@@ -279,9 +291,11 @@ export const masterApis = {
         }
     },
 
-    getPlantVariantById: async(id: number)=>{
+    getPlantVariantById: async (id: number) => {
         try {
-            const {data} = await api.get(`/master/plant-variant/${id}`);
+            const { data } = await api.get(`/master/plant-variant/${id}`, {
+                withCredentials: true
+            });
 
             return data
         } catch (error) {
@@ -289,10 +303,12 @@ export const masterApis = {
         }
     },
 
-    createPlantVariant : async(variantData: any)=>{
+    createPlantVariant: async (variantData: any) => {
         try {
 
-            const {data} = await api.post("master/plant-variant", variantData);
+            const { data } = await api.post("/master/plant-variant", variantData, {
+                withCredentials: true
+            });
 
             return data;
         } catch (error) {
@@ -300,9 +316,11 @@ export const masterApis = {
         }
     },
 
-    updatePlantVariant: async(id: number, newVariant: any)=>{
+    updatePlantVariant: async (id: number, newVariant: any) => {
         try {
-            const {data} = await api.patch(`/master/plant-variant/${id}`, newVariant);
+            const { data } = await api.patch(`/master/plant-variant/${id}`, newVariant, {
+                withCredentials: true
+            });
 
             return data
         } catch (error) {
@@ -310,9 +328,9 @@ export const masterApis = {
         }
     },
 
-    deletePlantVariant: async(id: number)=>{
+    deletePlantVariant: async (id: number) => {
         try {
-            const {data} = await api.delete(`/master/plant-variant/${id}`, {
+            const { data } = await api.delete(`/master/plant-variant/${id}`, {
                 withCredentials: true
             });
 
@@ -323,22 +341,10 @@ export const masterApis = {
     },
 
     //Categories and sub categories
-    getCategories: async()=>{
+    getCategories: async () => {
         try {
 
-            const {data} = await api.get("/master/category");
-
-            return data;
-
-        } catch (error) {
-            throw getApiError(error);
-        }
-    },
-
-    createCategory: async(category: any)=>{
-        try {
-
-            const {data} = await api.post("/master/category", category, {
+            const { data } = await api.get("/master/category", {
                 withCredentials: true
             });
 
@@ -349,10 +355,10 @@ export const masterApis = {
         }
     },
 
-    getCategoryById: async(id: number)=>{
+    createCategory: async (category: any) => {
         try {
 
-            const {data} = await api.get(`/master/category/${id}`, {
+            const { data } = await api.post("/master/category", category, {
                 withCredentials: true
             });
 
@@ -363,10 +369,10 @@ export const masterApis = {
         }
     },
 
-    updateCategory: async(id: number, category: any)=>{
+    getCategoryById: async (id: number) => {
         try {
 
-            const {data} = await api.patch(`/master/category/${id}`, category, {
+            const { data } = await api.get(`/master/category/${id}`, {
                 withCredentials: true
             });
 
@@ -377,10 +383,10 @@ export const masterApis = {
         }
     },
 
-    deleteCategory: async(id: string)=>{
+    updateCategory: async (id: number, category: any) => {
         try {
 
-            const {data} = await api.delete(`/master/category/${id}`, {
+            const { data } = await api.patch(`/master/category/${id}`, category, {
                 withCredentials: true
             });
 
@@ -391,34 +397,110 @@ export const masterApis = {
         }
     },
 
-    getSubCategories: async(id: number)=>{
+    deleteCategory: async (id: string) => {
         try {
 
-            const {data} = await api.get(`/master/dashboard/subcategories?id=${id}`)
+            const { data } = await api.delete(`/master/category/${id}`, {
+                withCredentials: true
+            });
 
             return data;
 
         } catch (error) {
-            throw getApiError(error);  
+            throw getApiError(error);
+        }
+    },
+
+    getSubCategories: async (categoryId?: number) => {
+        try {
+
+            const query = typeof categoryId === "number"
+                ? `?categoryId=${categoryId}`
+                : "";
+            const { data } = await api.get(`/master/dashboard/subcategories${query}`, {
+                withCredentials: true
+            })
+
+            return data;
+
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    createSubCategory: async (subCategory: any) => {
+        try {
+
+            const { data } = await api.post("/master/dashboard/subcategories", subCategory, {
+                withCredentials: true
+            });
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    updateSubCategory: async (id: number, subCategory: any) => {
+        try {
+
+            const { data } = await api.put(`/master/dashboard/subcategories/${id}`, subCategory, {
+                withCredentials: true
+            });
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    deleteSubCategory: async (id: number) => {
+        try {
+
+            const { data } = await api.delete(`/master/dashboard/subcategories/${id}`, {
+                withCredentials: true
+            });
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
         }
     }
 }
 
 export const inventoryApis = {
 
-    getStockById: async(id: number)=>{
-      try {
-        const {data} = await api.get(`inventory/${id}`);
-
-        return data;
-      } catch (error) {
-        throw getApiError(error);
-      }  
-    },
-    addStocks: async(stockData: any)=>{
+    getAllStocks: async () => {
         try {
 
-            const {data} = await api.post("inventory/add-stock", stockData)
+            const { data } = await api.get("/inventory", {
+                withCredentials: true
+            });
+
+            return data;
+
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    getStockById: async (id: number) => {
+        try {
+            const { data } = await api.get(`inventory/${id}`, {
+                withCredentials: true
+            });
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+    addStocks: async (stockData: any) => {
+        try {
+
+            const { data } = await api.post("inventory/add-stock", stockData, {
+                withCredentials: true
+            })
 
             return data;
         } catch (error) {
@@ -426,10 +508,11 @@ export const inventoryApis = {
         }
     },
 
-    removeStock : async(stockData: any)=>{
+    updateStock: async (stockData: any) => {
         try {
-
-            const {data} = await api.post("inventory/remove-stock", stockData)
+            const { data } = await api.put("inventory/stock", stockData, {
+                withCredentials: true
+            })
 
             return data;
         } catch (error) {
@@ -437,14 +520,269 @@ export const inventoryApis = {
         }
     },
 
-    deadStock: async(stockData: any)=>{
+    removeStock: async (stockData: any) => {
         try {
 
-            const {data} = await api.post("inventory/dead-stock", stockData)
+            const { data } = await api.post("inventory/remove-stock", stockData, {
+                withCredentials: true
+            })
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    deadStock: async (stockData: any) => {
+        try {
+
+            const { data } = await api.post("inventory/dead-stock", stockData, {
+                withCredentials: true
+            })
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    deleteStock: async (variantId: number) => {
+        try {
+            const { data } = await api.delete(`/inventory/${variantId}`, {
+                withCredentials: true
+            })
 
             return data;
         } catch (error) {
             throw getApiError(error);
         }
     }
+}
+
+export const plansApi = {
+    getAllPlans: async () => {
+        try {
+            const { data } = await api.get("/plans");
+
+            return data;
+
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    createNewPlan: async (planData: any) => {
+        try {
+
+            const { data } = api.post("/plans", planData, {
+                withCredentials: true
+            })
+
+            return data;
+
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    getEveryPlans: async () => {
+        try {
+            const { data } = await api.get("/plans/all");
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    updateAPlan: async (id: string, updatedPlan: any) => {
+        try {
+            const { data } = await api.patch(`/plans/${id}`, updatedPlan, {
+                withCredentials: true
+            })
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    deleteAPlan: async (id: string) => {
+        try {
+            const { data } = await api.delete(`/plans/${id}`,
+                {
+                    withCredentials: true
+                }
+            )
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    }
+}
+
+export const qrApis = {
+
+    generateQrCode: async (id: number) => {
+        try {
+            const { data } = await api.post(`/qr/generate/${id}`, null, {
+                withCredentials: true
+            })
+            return data
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    getQrCode: async (code: string) => {
+        try {
+            const { data } = await api.get(`/qr/${code}`, {
+                withCredentials: true
+            })
+            return data
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    getQrAnalytics: async (days: number = 30) => {
+        try {
+            const { data } = await api.get(`/qr/analytics/summary?days=${days}`, {
+                withCredentials: true
+            });
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    }
+}
+
+
+export const paymentApis = {
+    getAllPayments: async () => {
+        try {
+            const { data } = await api.get("/payments", {
+                withCredentials: true
+            });
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    getPaymentById: async (id: number) => {
+        try {
+            const { data } = await api.get(`/payments/${id}`, {
+                withCredentials: true
+            });
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    updatePaymentStatus: async (id: number, status: string) => {
+        try {
+            const { data } = await api.patch(`/payments/${id}/status`, { status }, {
+                withCredentials: true
+            });
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    }
+}
+
+export const reportApis = {
+    getSalesReports: async (type?: string) => {
+        try {
+            const { data } = await api.get(`/reports/sales?type=${type}`, {
+                withCredentials: true
+            });
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+    getTopPlants: async (limit?: number) => {
+        try {
+            const { data } = await api.get(`/reports/top-plants?limit=${limit}`, {
+                withCredentials: true
+            })
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    getInventoryValue: async () => {
+        try {
+            const { data } = await api.get('/reports/inventory-value', {
+                withCredentials: true
+            });
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    }
+}
+
+export const subscriptionApis = {
+    getActiveSubscription: async () => {
+        try {
+            const { data } = await api.get("/subscriptions/me", {
+                withCredentials: true
+            })
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    subscribe: async (planId: string, paymentMethod: string, paymentReference: string) => {
+        try {
+            const { data } = await api.post("/subscription/subscribe", {
+                planId, paymentMethod, paymentReference
+            }, {
+                withCredentials: true
+            })
+
+            return data;
+
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    upgrade: async (planId: string, paymentMethod: string, paymentReference: string) => {
+        try {
+            const { data } = await api.post("/subscription/upgrade", {
+                planId, paymentMethod, paymentReference
+            }, {
+                withCredentials: true
+            })
+
+            return data;
+
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+    cancel: async () => {
+        try {
+            const { data } = await api.post("/subscription/cancel", {}, {
+                withCredentials: true
+            })
+
+            return data;
+
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
 }
