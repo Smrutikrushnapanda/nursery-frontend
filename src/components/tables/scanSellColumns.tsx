@@ -7,6 +7,20 @@ export type DailyScan = {
   count: string | number
 }
 
+export function getScanActivityLabel(count: string | number) {
+  const numericCount = Number(count)
+
+  if (numericCount > 10) {
+    return "High Activity"
+  }
+
+  if (numericCount > 5) {
+    return "Moderate Activity"
+  }
+
+  return "Low Activity"
+}
+
 export function getScanSellColumns(): ColumnDef<DailyScan>[] {
   return [
     {
@@ -38,16 +52,13 @@ export function getScanSellColumns(): ColumnDef<DailyScan>[] {
         id: "status",
         header: "Activity",
         cell: ({ row }) => {
-            const count = Number(row.original.count);
             let statusColor = "bg-gray-100 text-gray-800";
-            let statusText = "Low Activity";
+            const statusText = getScanActivityLabel(row.original.count);
 
-            if (count > 10) {
+            if (statusText === "High Activity") {
                 statusColor = "bg-green-100 text-green-800";
-                statusText = "High Activity";
-            } else if (count > 5) {
+            } else if (statusText === "Moderate Activity") {
                 statusColor = "bg-yellow-100 text-yellow-800";
-                statusText = "Moderate Activity";
             }
 
             return (

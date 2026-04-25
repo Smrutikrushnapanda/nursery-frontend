@@ -11,6 +11,7 @@ import { getCategoryColumns } from "@/components/categories/categoryColumns";
 import { CategoryToolbar } from "@/components/categories/CategoryToolbar";
 import { CategoryFormDialog } from "@/components/categories/CategoryFormDialog";
 import { TableLoader } from "@/components/table-loader/table-loader";
+import { Filter, FilterField } from "@/components/common/Filter";
 
 export default function Page() {
   const [categories, setCategories] = useState<CategoryItem[]>([]);
@@ -21,7 +22,41 @@ export default function Page() {
   const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
   const [deletingCategory, setDeletingCategory] = useState<CategoryItem | null>(null);
   const [form, setForm] = useState<CategoryForm>(initialForm);
+  const [filters, setFilters] = useState<Record<string, any>>({});
   const { setMasterCategories } = useAppStore();
+
+  const categoryOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          categories
+            .map((category) => category.name?.trim())
+            .filter((name): name is string => Boolean(name))
+        )
+      ).map((name) => ({ value: name, label: name })),
+    [categories]
+  );
+
+  const filterFields: FilterField[] = useMemo(
+    () => [
+      {
+        id: "category",
+        label: "Category Name",
+        type: "select",
+        options: categoryOptions,
+        placeholder: "All Categories",
+      },
+    ],
+    [categoryOptions]
+  );
+
+  const filteredCategories = useMemo(() => {
+    return categories.filter(category => {
+      const categoryName = category.name ?? "";
+      const categoryMatch = !filters.category || categoryName === filters.category;
+      return categoryMatch;
+    });
+  }, [categories, filters]);
 
   const fetchCategories = async () => {
     setLoading(true);
@@ -116,6 +151,12 @@ export default function Page() {
     <div className="space-y-6">
       <CategoryToolbar onAddClick={handleAddClick} />
 
+      <Filter 
+        fields={filterFields} 
+        onFilter={setFilters} 
+        title="Category Filters"
+      />
+
       {error ? (
         <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
@@ -123,7 +164,7 @@ export default function Page() {
       ) : loading ? (
         <TableLoader message="Loading category master data..." />
       ) : (
-        <DataTable columns={columns} data={categories} defaultPageSize={10} />
+        <DataTable columns={columns} data={filteredCategories} defaultPageSize={10} />
       )}
 
       <CategoryFormDialog

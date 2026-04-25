@@ -1,11 +1,10 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { ArrowDown, ArrowUp, ArrowUpDown, MoreVertical } from "lucide-react"
+import { MoreVertical } from "lucide-react"
 import { useState } from "react"
 import { Dropdown } from "@/components/ui/dropdown/Dropdown"
 import { DropdownItem } from "@/components/ui/dropdown/DropdownItem"
-
 import Badge from "@/components/ui/badge/Badge"
 import { Button } from "@/components/ui/button"
 import { inventoryApis } from "@/utils/api/api"
@@ -30,7 +29,7 @@ export type InventoryItem = {
   }
 }
 
-function getStockStatus(row: InventoryItem): "In Stock" | "Low Stock" | "Out of Stock" {
+export function getStockStatus(row: InventoryItem): "In Stock" | "Low Stock" | "Out of Stock" {
   const quantity = Number(row.quantity ?? 0)
   const minQuantity = Number(row.variant?.minQuantity ?? 0)
 
@@ -197,9 +196,10 @@ export function getInventoryColumns({
       header: "Price",
       cell: ({ row }) => (
         <span className="text-gray-500 text-theme-sm dark:text-gray-400">
-          {new Intl.NumberFormat("en-US", {
+          {new Intl.NumberFormat("en-IN", {
             style: "currency",
-            currency: "USD",
+            currency: "INR",
+            maximumFractionDigits: 0,
           }).format(Number(row.original.variant?.price ?? 0))}
         </span>
       ),

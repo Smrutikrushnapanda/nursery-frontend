@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { DashboardDialog } from "@/components/common/DashboardDialog";
 import { DataTable } from "@/components/tables/DataTable";
-import { getPaymentColumns, PaymentItem } from "@/components/tables/Columns";
+import { getPaymentColumns, PaymentItem } from "@/components/tables/paymentColumns";
 import { paymentApis } from "@/utils/api/api";
 import { TableLoader } from "@/components/table-loader/table-loader";
 import Badge from "@/components/ui/badge/Badge";

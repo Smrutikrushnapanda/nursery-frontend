@@ -5,11 +5,12 @@ import { DashboardDialog } from "@/components/common/DashboardDialog";
 import { StockFormDialog, StockFormState, StockVariantOption } from "@/components/inventory/StockFormDialog";
 import { DeadStockDialog } from "@/components/inventory/DeadStockDialog";
 import { DataTable } from "@/components/tables/DataTable";
-import { getInventoryColumns, InventoryItem } from "@/components/tables/Columns";
+import { getInventoryColumns, InventoryItem, getStockStatus } from "@/components/tables/inventoryColumns";
 import { useAppStore } from "@/utils/store/store";
 import { inventoryApis, masterApis } from "@/utils/api/api";
 import { Button } from "@/components/ui/button";
 import { TableLoader } from "@/components/table-loader/table-loader";
+import { Filter, FilterField } from "@/components/common/Filter";
 
 const initialStockForm: StockFormState = {
   variantId: "",
@@ -38,6 +39,46 @@ export default function InventoryPage() {
   const [variantOptions, setVariantOptions] = useState<StockVariantOption[]>([]);
   const [viewingStock, setViewingStock] = useState<InventoryItem | null>(null);
   const [deadStockTarget, setDeadStockTarget] = useState<InventoryItem | null>(null);
+  const [filters, setFilters] = useState<Record<string, any>>({});
+
+  const filterFields: FilterField[] = [
+    {
+      id: "plant",
+      label: "Plant Name",
+      type: "text",
+      placeholder: "Search by plant..."
+    },
+    {
+      id: "variant",
+      label: "Variant / SKU",
+      type: "text",
+      placeholder: "Search by SKU..."
+    },
+    {
+      id: "status",
+      label: "Status",
+      type: "select",
+      options: [
+        { value: "In Stock", label: "In Stock" },
+        { value: "Low Stock", label: "Low Stock" },
+        { value: "Out of Stock", label: "Out of Stock" }
+      ]
+    }
+  ];
+
+  const filteredStocks = useMemo(() => {
+    return (stocks ?? []).filter(stock => {
+      const plantName = stock.variant?.plant?.name ?? "";
+      const sku = stock.variant?.sku ?? "";
+      const status = getStockStatus(stock);
+
+      const plantMatch = !filters.plant || plantName.toLowerCase().includes(filters.plant.toLowerCase());
+      const variantMatch = !filters.variant || sku.toLowerCase().includes(filters.variant.toLowerCase());
+      const statusMatch = !filters.status || status === filters.status;
+
+      return plantMatch && variantMatch && statusMatch;
+    });
+  }, [stocks, filters]);
 
   const getStocks = async () => {
     setIsPageLoading(true);
@@ -183,7 +224,13 @@ export default function InventoryPage() {
         </Button>
       </div>
 
-      <DataTable columns={columns} data={stocks ?? []} />
+      <Filter 
+        fields={filterFields} 
+        onFilter={setFilters} 
+        title="Stock Filters"
+      />
+
+      <DataTable columns={columns} data={filteredStocks ?? []} />
 
       {dialogMode ? (
         <StockFormDialog

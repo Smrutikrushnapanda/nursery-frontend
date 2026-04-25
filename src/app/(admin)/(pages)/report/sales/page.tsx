@@ -12,10 +12,14 @@ export default function SalesReportsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [reportType, setReportType] = useState<string>("daily")
 
+  const [customDays, setCustomDays] = useState<string>("30")
+
   const fetchSalesReports = async (type: string) => {
     setIsLoading(true)
     try {
-      const response = await reportApis.getSalesReports(type)
+      // If type is custom, we send the numeric value
+      const queryType = type === "custom" ? customDays : type
+      const response = await reportApis.getSalesReports(queryType)
       if (response.success) {
         setData(response.data)
       }
@@ -27,7 +31,9 @@ export default function SalesReportsPage() {
   }
 
   useEffect(() => {
-    fetchSalesReports(reportType)
+    if (reportType !== "custom") {
+      fetchSalesReports(reportType)
+    }
   }, [reportType])
 
   const totals = useMemo(() => {
@@ -52,19 +58,43 @@ export default function SalesReportsPage() {
           <p className="text-gray-500 dark:text-gray-400 2xl:text-base">Analyze your revenue and order trends over time.</p>
         </div>
 
-        <div className="flex items-center gap-1 bg-white dark:bg-gray-800 p-1 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-          {["daily", "weekly", "monthly"].map((t) => (
-            <button
-              key={t}
-              onClick={() => setReportType(t)}
-              className={`px-4 py-1.5 2xl:px-6 2xl:py-2 text-sm 2xl:text-base font-medium rounded-md transition-all capitalize ${reportType === t
-                ? "bg-brand-500 text-white shadow-sm"
-                : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50"
-                }`}
-            >
-              {t}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1 bg-white dark:bg-gray-800 p-1 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+            {["daily", "weekly", "monthly", "custom"].map((t) => (
+              <button
+                key={t}
+                onClick={() => setReportType(t)}
+                className={`px-4 py-1.5 2xl:px-6 2xl:py-2 text-sm 2xl:text-base font-medium rounded-md transition-all capitalize ${reportType === t
+                  ? "bg-brand-500 text-white shadow-sm"
+                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                  }`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+
+          {reportType === "custom" && (
+            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-2 duration-300">
+              <div className="relative">
+                <input
+                  type="number"
+                  value={customDays}
+                  onChange={(e) => setCustomDays(e.target.value)}
+                  className="w-20 px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all"
+                  placeholder="Days"
+                  min="1"
+                />
+                <span className="absolute -top-6 left-0 text-[10px] font-bold text-brand-600 uppercase tracking-tighter">Days</span>
+              </div>
+              <button
+                onClick={() => fetchSalesReports("custom")}
+                className="px-4 py-1.5 text-sm font-semibold text-white bg-brand-600 rounded-lg hover:bg-brand-700 shadow-sm active:scale-95 transition-all"
+              >
+                Fetch
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

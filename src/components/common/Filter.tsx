@@ -5,6 +5,7 @@ import { Filter as FilterIcon, RotateCcw, ChevronDown, ChevronUp } from "lucide-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 export type FilterField = {
   id: string;
@@ -83,15 +84,15 @@ export const Filter: React.FC<FilterProps> = ({
         </div>
 
         {/* Fields in a row */}
-        <div className="flex-1 flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {fields.map((field) => (
-            <div key={field.id} className="min-w-[120px] flex-1">
+            <div key={field.id} className="w-full min-w-[160px] sm:w-[200px]">
               {field.type === "select" ? (
                 <select
                   id={field.id}
                   value={values[field.id]}
                   onChange={(e) => handleChange(field.id, e.target.value)}
-                  className="w-full h-8 px-2 py-0.5 rounded-lg border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 text-[11px] text-gray-700 dark:text-gray-200 outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all cursor-pointer"
+                  className="w-full h-8 px-2 py-0.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-[11px] text-gray-700 dark:text-gray-200 outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all cursor-pointer shadow-sm hover:border-brand-300"
                 >
                   <option value="">{field.placeholder || field.label}</option>
                   {field.options?.map((opt) => (
@@ -100,22 +101,17 @@ export const Filter: React.FC<FilterProps> = ({
                     </option>
                   ))}
                 </select>
-              ) : field.type === "date" ? (
-                <Input
-                  id={field.id}
-                  type="date"
-                  value={values[field.id]}
-                  onChange={(e) => handleChange(field.id, e.target.value)}
-                  className="h-8 rounded-lg border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 focus:ring-brand-500/20 text-[11px] px-2"
-                />
               ) : (
                 <Input
                   id={field.id}
-                  type="text"
+                  type={field.type === "date" ? "date" : "text"}
                   value={values[field.id]}
                   onChange={(e) => handleChange(field.id, e.target.value)}
                   placeholder={field.placeholder || field.label}
-                  className="h-8 rounded-lg border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 focus:ring-brand-500/20 text-[11px] px-2"
+                  className={cn(
+                    "h-8 rounded-lg border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-[11px] transition-all shadow-sm hover:border-brand-300",
+                    field.type === "date" ? "pl-2 pr-1" : "px-2"
+                  )}
                 />
               )}
             </div>

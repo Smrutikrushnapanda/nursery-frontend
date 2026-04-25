@@ -12,6 +12,7 @@ import { getSubCategoryColumns } from "@/components/sub-categories/subCategoryCo
 import { SubCategoryToolbar } from "@/components/sub-categories/SubCategoryToolbar";
 import { SubCategoryFormDialog } from "@/components/sub-categories/SubCategoryFormDialog";
 import { TableLoader } from "@/components/table-loader/table-loader";
+import { Filter, FilterField } from "@/components/common/Filter";
 
 export default function Page() {
   const [subCategories, setSubCategories] = useState<SubcategoryItem[]>([]);
@@ -22,22 +23,8 @@ export default function Page() {
   const [editingSubCategoryId, setEditingSubCategoryId] = useState<number | null>(null);
   const [deletingSubCategory, setDeletingSubCategory] = useState<SubcategoryItem | null>(null);
   const [form, setForm] = useState<SubcategoryForm>(initialForm);
+  const [filters, setFilters] = useState<Record<string, any>>({});
   const { masterCategories, setMasterCategories } = useAppStore();
-
-  const fetchCategories = async () => {
-    try {
-      const response = await masterApis.getCategories();
-      setMasterCategories(Array.isArray(response?.data?.data) ? response.data.data : []);
-    } catch (error: any) {
-      alert(error.message);
-    }
-  };
-
-  useEffect(() => {
-    if (!Array.isArray(masterCategories) || masterCategories.length === 0) {
-      fetchCategories();
-    }
-  }, []);
 
   const categoryOptions = useMemo(
     () =>
@@ -56,6 +43,65 @@ export default function Page() {
       ),
     [masterCategories]
   );
+
+  const subCategoryOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          subCategories
+            .map((subCategory) => subCategory.name?.trim())
+            .filter((name): name is string => Boolean(name))
+        )
+      ).map((name) => ({ value: name, label: name })),
+    [subCategories]
+  );
+
+  const filterFields: FilterField[] = useMemo(
+    () => [
+      {
+        id: "category",
+        label: "Category",
+        type: "select",
+        options: categoryOptions.map((cat) => ({ value: cat.name, label: cat.name })),
+        placeholder: "All Categories",
+      },
+      {
+        id: "subcategory",
+        label: "Sub-category",
+        type: "select",
+        options: subCategoryOptions,
+        placeholder: "All Sub-categories",
+      },
+    ],
+    [categoryOptions, subCategoryOptions]
+  );
+
+  const filteredSubCategories = useMemo(() => {
+    return subCategories.filter(sub => {
+      const categoryName = sub.categoryName ?? "";
+      const subCategoryName = sub.name ?? "";
+
+      const categoryMatch = !filters.category || categoryName === filters.category;
+      const subCategoryMatch = !filters.subcategory || subCategoryName === filters.subcategory;
+
+      return categoryMatch && subCategoryMatch;
+    });
+  }, [subCategories, filters]);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await masterApis.getCategories();
+      setMasterCategories(Array.isArray(response?.data?.data) ? response.data.data : []);
+    } catch (error: any) {
+      console.error("Failed to fetch categories:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (!Array.isArray(masterCategories) || masterCategories.length === 0) {
+      fetchCategories();
+    }
+  }, []);
 
   const fetchPageData = async () => {
     setLoading(true);
@@ -155,6 +201,12 @@ export default function Page() {
     <div className="space-y-6">
       <SubCategoryToolbar onAddClick={handleAddClick} />
 
+      <Filter 
+        fields={filterFields} 
+        onFilter={setFilters} 
+        title="Sub-category Filters"
+      />
+
       {error ? (
         <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
@@ -162,7 +214,7 @@ export default function Page() {
       ) : loading ? (
        <TableLoader message="Loading sub-categories..." />
       ) : (
-        <DataTable columns={columns} data={subCategories} defaultPageSize={10} />
+        <DataTable columns={columns} data={filteredSubCategories} defaultPageSize={10} />
       )}
 
       <SubCategoryFormDialog

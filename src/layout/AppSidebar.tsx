@@ -13,8 +13,9 @@ import {
   PlugInIcon,
 } from "@/icons/index";
 import { BoxIcon, Settings, BarChart2, Workflow } from "lucide-react";
-import { masterApis } from "@/utils/api/api";
+import { masterApis, subscriptionApis } from "@/utils/api/api";
 import { useAppStore } from "@/utils/store/store";
+import { Crown, ArrowUpCircle } from "lucide-react";
 
 type NavItem = {
   name: string;
@@ -61,14 +62,36 @@ const AppSidebar: React.FC = () => {
   const menuData = useAppStore((state) => state.menu);
   const { getMenu } = masterApis;
 
+  const [subscription, setSubscription] = useState<any>(null);
+  const [isLoadingSubscription, setIsLoadingSubscription] = useState(true);
+
   //getting menus
   const fetchMenus = async () => {
-    const response = await getMenu();
-    setMenu(response.data);
+    try {
+      const response = await getMenu();
+      setMenu(response.data);
+    } catch (error) {
+      console.error("Failed to fetch menu:", error);
+    }
+  };
+
+  const fetchSubscription = async () => {
+    setIsLoadingSubscription(true);
+    try {
+      const response = await subscriptionApis.getActiveSubscription();
+      if (response.success) {
+        setSubscription(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch subscription:", error);
+    } finally {
+      setIsLoadingSubscription(false);
+    }
   };
 
   useEffect(() => {
     fetchMenus();
+    fetchSubscription();
   }, []);
 
   const getIconForMenu = (menuName: string) => {
@@ -123,22 +146,19 @@ const AppSidebar: React.FC = () => {
           {nav.subItems ? (
             <button
               onClick={() => handleSubmenuToggle(index, menuType)}
-              className={`group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
-                nav.subItems?.some((subItem) => isActive(subItem.path))
-                  ? "bg-gradient-to-r from-brand-500 to-brand-400 text-white shadow-md"
-                  : "text-gray-700 hover:bg-brand-25 hover:text-brand-800"
-              } ${
-                !isExpanded && !isHovered ? "lg:justify-center" : "lg:justify-start"
-              }`}
+              className={`group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${nav.subItems?.some((subItem) => isActive(subItem.path))
+                ? "bg-gradient-to-r from-brand-500 to-brand-400 text-white shadow-md"
+                : "text-gray-700 hover:bg-brand-25 hover:text-brand-800"
+                } ${!isExpanded && !isHovered ? "lg:justify-center" : "lg:justify-start"
+                }`}
             >
               {/* Left accent bar on hover */}
               <span className="absolute left-0 top-1/2 h-0 w-1 -translate-y-1/2 rounded-r-full bg-brand-500 opacity-0 transition-all group-hover:h-6 group-hover:opacity-100" />
               <span
-                className={`${
-                  nav.subItems?.some((subItem) => isActive(subItem.path))
-                    ? "text-white"
-                    : "text-brand-600 group-hover:text-brand-700"
-                }`}
+                className={`${nav.subItems?.some((subItem) => isActive(subItem.path))
+                  ? "text-white"
+                  : "text-brand-600 group-hover:text-brand-700"
+                  }`}
               >
                 {nav.icon}
               </span>
@@ -147,15 +167,13 @@ const AppSidebar: React.FC = () => {
               )}
               {(isExpanded || isHovered || isMobileOpen) && (
                 <ChevronDownIcon
-                  className={`h-4 w-4 transition-transform duration-200 ${
-                    openSubmenu?.type === menuType && openSubmenu?.index === index
-                      ? "rotate-180"
-                      : ""
-                  } ${
-                    nav.subItems?.some((subItem) => isActive(subItem.path))
+                  className={`h-4 w-4 transition-transform duration-200 ${openSubmenu?.type === menuType && openSubmenu?.index === index
+                    ? "rotate-180"
+                    : ""
+                    } ${nav.subItems?.some((subItem) => isActive(subItem.path))
                       ? "text-white"
                       : "text-gray-400 group-hover:text-brand-600"
-                  }`}
+                    }`}
                 />
               )}
             </button>
@@ -163,19 +181,16 @@ const AppSidebar: React.FC = () => {
             nav.path && (
               <Link
                 href={nav.path}
-                className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
-                  isActive(nav.path)
-                    ? "bg-gradient-to-r from-brand-500 to-brand-400 text-white shadow-md"
-                    : "text-gray-700 hover:bg-brand-25 hover:text-brand-800"
-                } ${
-                  !isExpanded && !isHovered ? "lg:justify-center" : "lg:justify-start"
-                }`}
+                className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${isActive(nav.path)
+                  ? "bg-gradient-to-r from-brand-500 to-brand-400 text-white shadow-md"
+                  : "text-gray-700 hover:bg-brand-25 hover:text-brand-800"
+                  } ${!isExpanded && !isHovered ? "lg:justify-center" : "lg:justify-start"
+                  }`}
               >
                 <span className="absolute left-0 top-1/2 h-0 w-1 -translate-y-1/2 rounded-r-full bg-brand-500 opacity-0 transition-all group-hover:h-6 group-hover:opacity-100" />
                 <span
-                  className={`${
-                    isActive(nav.path) ? "text-white" : "text-brand-600 group-hover:text-brand-700"
-                  }`}
+                  className={`${isActive(nav.path) ? "text-white" : "text-brand-600 group-hover:text-brand-700"
+                    }`}
                 >
                   {nav.icon}
                 </span>
@@ -203,11 +218,10 @@ const AppSidebar: React.FC = () => {
                   <li key={subItem.name}>
                     <Link
                       href={subItem.path}
-                      className={`group relative flex items-center rounded-lg px-3 py-2 text-sm transition-all ${
-                        isActive(subItem.path)
-                          ? "bg-brand-50 font-medium text-brand-700"
-                          : "text-gray-600 hover:bg-brand-25/50 hover:text-brand-700"
-                      }`}
+                      className={`group relative flex items-center rounded-lg px-3 py-2 text-sm transition-all ${isActive(subItem.path)
+                        ? "bg-brand-50 font-medium text-brand-700"
+                        : "text-gray-600 hover:bg-brand-25/50 hover:text-brand-700"
+                        }`}
                     >
                       <span className="absolute -left-[17px] top-1/2 h-2 w-2 -translate-y-1/2 rounded-full border-2 border-white bg-brand-200 transition-all group-hover:scale-110 group-hover:bg-brand-400" />
                       {subItem.name}
@@ -303,30 +317,29 @@ const AppSidebar: React.FC = () => {
       {/* Main sidebar container with premium borders */}
       <div className="relative flex h-full flex-col bg-white shadow-theme-md">
         {/* Multi-layer borders */}
-        <div className="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-brand-300 to-transparent" />
-        <div className="absolute inset-y-0 right-[1px] w-px bg-brand-200/30" />
-        
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-brand-300 to-transparent" />
+        <div className="pointer-events-none absolute inset-y-0 right-[1px] w-px bg-brand-200/30" />
+
         {/* Right accent bar */}
-        <div className="absolute right-0 top-0 bottom-0 w-1 bg-gradient-to-b from-brand-500 via-brand-400 to-brand-300 opacity-0 transition-opacity duration-300 group-hover/sidebar:opacity-100" />
-        
+        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-1 bg-gradient-to-b from-brand-500 via-brand-400 to-brand-300 opacity-0 transition-opacity duration-300 group-hover/sidebar:opacity-100" />
+
         {/* Subtle background pattern */}
         <div
-          className="absolute inset-0 opacity-[0.02]"
+          className="pointer-events-none absolute inset-0 opacity-[0.02]"
           style={{
             backgroundImage: `radial-gradient(circle at 30% 20%, #346739 1px, transparent 1px)`,
             backgroundSize: "30px 30px",
           }}
         />
-        
+
         {/* Background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-b from-brand-25/40 via-transparent to-transparent" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-brand-25/40 via-transparent to-transparent" />
 
         {/* Logo section */}
-        <div className="relative px-5 py-6">
+        <div className="relative z-10 px-5 py-6">
           <div
-            className={`flex ${
-              !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
-            }`}
+            className={`flex ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
+              }`}
           >
             <Link href="/" className="group relative">
               <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-brand-400/20 to-transparent opacity-0 blur transition-opacity group-hover:opacity-100" />
@@ -359,13 +372,12 @@ const AppSidebar: React.FC = () => {
         </div>
 
         {/* Navigation */}
-        <div className="flex-1 overflow-y-auto px-3 custom-scrollbar">
+        <div className="relative z-10 flex-1 overflow-y-auto px-3 custom-scrollbar">
           <nav className="py-2">
             <div>
               <h2
-                className={`mb-3 flex text-xs font-semibold uppercase tracking-wider text-brand-600 ${
-                  !isExpanded && !isHovered ? "lg:justify-center" : "justify-start px-2"
-                }`}
+                className={`mb-3 flex text-xs font-semibold uppercase tracking-wider text-brand-600 ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start px-2"
+                  }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
                   <span className="flex items-center gap-2">
@@ -379,6 +391,64 @@ const AppSidebar: React.FC = () => {
               {renderMenuItems(navItems, "main")}
             </div>
           </nav>
+        </div>
+
+        {/* Subscription section */}
+        <div className="relative z-10 border-t border-brand-100 bg-brand-25/30 px-3 py-4">
+          {isExpanded || isHovered || isMobileOpen ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between rounded-xl bg-white p-3 shadow-sm border border-brand-100/50">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+                    <Crown className="h-5 w-5" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-brand-500">
+                      Active Plan
+                    </span>
+                    <span className="text-sm font-bold text-brand-900">
+                      {isLoadingSubscription
+                        ? "Loading..."
+                        : (subscription?.plan?.name || "No active plan")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {subscription?.plan?.name !== "PREMIUM" && (
+                <Link
+                  href="/pricing"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:scale-[1.02] active:scale-[0.98] hover:shadow-brand-200"
+                >
+                  <ArrowUpCircle className="h-4 w-4" />
+                  Upgrade Plan
+                </Link>
+              )}
+
+              <div className="px-1 text-[10px] text-gray-500">
+                Next billing: {subscription?.endDate ? new Date(subscription.endDate).toLocaleDateString() : "-"}
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-4">
+              <Link
+                href="/pricing"
+                className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600 border border-brand-100 transition-colors hover:bg-brand-100"
+                title={isLoadingSubscription ? "Loading..." : `Active Plan: ${subscription?.plan?.name || "None"}`}
+              >
+                <Crown className="h-5 w-5" />
+              </Link>
+              {subscription?.plan?.name !== "PREMIUM" && (
+                <Link
+                  href="/pricing"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 text-white shadow-sm"
+                  title="Upgrade Plan"
+                >
+                  <ArrowUpCircle className="h-5 w-5" />
+                </Link>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </aside>

@@ -73,7 +73,7 @@ export default function QrViewPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-xl overflow-hidden">
         <DataTable columns={columns} data={DUMMY_QR_DATA} />
       </div>
 
@@ -87,13 +87,13 @@ export default function QrViewPage() {
         {viewingQr && (
           <div className="flex flex-col items-center gap-6 p-4">
             <div className="size-48 bg-white border-2 border-gray-100 rounded-xl flex items-center justify-center p-4 shadow-inner">
-               <img 
-                 src={`data:image/png;base64,${viewingQr.qrImageBase64}`} 
-                 alt={viewingQr.code}
-                 className="size-full object-contain"
-               />
+              <img
+                src={`data:image/png;base64,${viewingQr.qrImageBase64}`}
+                alt={viewingQr.code}
+                className="size-full object-contain"
+              />
             </div>
-            
+
             <div className="w-full space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -105,7 +105,7 @@ export default function QrViewPage() {
                   <p className="font-mono text-sm text-gray-900">{viewingQr.code}</p>
                 </div>
               </div>
-              
+
               <div>
                 <p className="text-xs uppercase font-semibold text-gray-400 tracking-wider">Scientific Name</p>
                 <p className="italic text-gray-700">{viewingQr.plant.scientificName ?? "N/A"}</p>
