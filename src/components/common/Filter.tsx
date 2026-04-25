@@ -70,7 +70,7 @@ export const Filter: React.FC<FilterProps> = ({
   };
 
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-2 transition-all duration-300 ${className}`}>
+    <div className={` dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-2 transition-all duration-300 ${className}`}>
       <div className="flex flex-wrap items-center gap-3">
         {/* Compact Header/Icon */}
         <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-100 dark:border-gray-800">

@@ -682,6 +682,18 @@ export const qrApis = {
         } catch (error) {
             throw getApiError(error);
         }
+    },
+
+    generateInBulk: async (categoryId: number, subcategoryId: number) => {
+        try {
+            const { data } = await api.post(`/qr/generate/bulk?categoryId=${categoryId}&subcategoryId=${subcategoryId}`, null, {
+                withCredentials: true
+            })
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
     }
 }
 

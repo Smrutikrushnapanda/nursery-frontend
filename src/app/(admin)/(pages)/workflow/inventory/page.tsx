@@ -11,6 +11,7 @@ import { inventoryApis, masterApis } from "@/utils/api/api";
 import { Button } from "@/components/ui/button";
 import { TableLoader } from "@/components/table-loader/table-loader";
 import { Filter, FilterField } from "@/components/common/Filter";
+import { sizeOptions } from "../../master/plant-variant/config";
 
 const initialStockForm: StockFormState = {
   variantId: "",
@@ -40,19 +41,30 @@ export default function InventoryPage() {
   const [viewingStock, setViewingStock] = useState<InventoryItem | null>(null);
   const [deadStockTarget, setDeadStockTarget] = useState<InventoryItem | null>(null);
   const [filters, setFilters] = useState<Record<string, any>>({});
+  const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
+  const [subCategories, setSubCategories] = useState<{ id: number; name: string }[]>([]);
 
-  const filterFields: FilterField[] = [
+  const filterFields: FilterField[] = useMemo(() => [
     {
-      id: "plant",
-      label: "Plant Name",
-      type: "text",
-      placeholder: "Search by plant..."
+      id: "category",
+      label: "Category",
+      type: "select",
+      options: categories.map(c => ({ value: c.name, label: c.name })),
+      placeholder: "All Categories"
+    },
+    {
+      id: "subcategory",
+      label: "Sub Category",
+      type: "select",
+      options: subCategories.map(s => ({ value: s.name, label: s.name })),
+      placeholder: "All Sub Categories"
     },
     {
       id: "variant",
-      label: "Variant / SKU",
-      type: "text",
-      placeholder: "Search by SKU..."
+      label: "Variant",
+      type: "select",
+      options: sizeOptions.map(size => ({ value: size, label: size.replaceAll("_", " ") })),
+      placeholder: "All Variants"
     },
     {
       id: "status",
@@ -62,21 +74,33 @@ export default function InventoryPage() {
         { value: "In Stock", label: "In Stock" },
         { value: "Low Stock", label: "Low Stock" },
         { value: "Out of Stock", label: "Out of Stock" }
-      ]
+      ],
+      placeholder: "All Status"
+    },
+    {
+      id: "plant",
+      label: "Plant Name",
+      type: "text",
+      placeholder: "Search by plant..."
     }
-  ];
+  ], [categories, subCategories]);
 
   const filteredStocks = useMemo(() => {
     return (stocks ?? []).filter(stock => {
-      const plantName = stock.variant?.plant?.name ?? "";
-      const sku = stock.variant?.sku ?? "";
+      const plant = (stock.variant?.plant as any) ?? {};
+      const plantName = plant.name ?? "";
+      const categoryName = plant.category?.name ?? "";
+      const subCategoryName = plant.subcategory?.name ?? "";
+      const variantSize = stock.variant?.size ?? "";
       const status = getStockStatus(stock);
 
+      const categoryMatch = !filters.category || categoryName === filters.category;
+      const subCategoryMatch = !filters.subcategory || subCategoryName === filters.subcategory;
       const plantMatch = !filters.plant || plantName.toLowerCase().includes(filters.plant.toLowerCase());
-      const variantMatch = !filters.variant || sku.toLowerCase().includes(filters.variant.toLowerCase());
+      const variantMatch = !filters.variant || variantSize === filters.variant;
       const statusMatch = !filters.status || status === filters.status;
 
-      return plantMatch && variantMatch && statusMatch;
+      return categoryMatch && subCategoryMatch && plantMatch && variantMatch && statusMatch;
     });
   }, [stocks, filters]);
 
@@ -125,8 +149,39 @@ export default function InventoryPage() {
     }
   };
 
+  const fetchFilterOptions = async () => {
+    try {
+      const [catRes, subRes] = await Promise.all([
+        masterApis.getCategories(),
+        masterApis.getSubCategories(),
+      ]);
+      
+      const catData = Array.isArray(catRes?.data?.data) 
+        ? catRes.data.data 
+        : Array.isArray(catRes?.data) 
+          ? catRes.data 
+          : Array.isArray(catRes) 
+            ? catRes 
+            : [];
+
+      const subData = Array.isArray(subRes?.data?.data) 
+        ? subRes.data.data 
+        : Array.isArray(subRes?.data) 
+          ? subRes.data 
+          : Array.isArray(subRes) 
+            ? subRes 
+            : [];
+      
+      setCategories(catData);
+      setSubCategories(subData);
+    } catch (err) {
+      console.error("Failed to fetch filter options:", err);
+    }
+  };
+
   useEffect(() => {
     getStocks();
+    fetchFilterOptions();
   }, []);
 
   useEffect(() => {
@@ -224,9 +279,9 @@ export default function InventoryPage() {
         </Button>
       </div>
 
-      <Filter 
-        fields={filterFields} 
-        onFilter={setFilters} 
+      <Filter
+        fields={filterFields}
+        onFilter={setFilters}
         title="Stock Filters"
       />
 

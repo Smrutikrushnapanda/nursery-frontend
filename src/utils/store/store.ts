@@ -4,7 +4,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 interface AppState {
   user: any | null;
   menu: any | null;
-  token: string | null;
+  // token: string | null;
   organization: any | null;
   businessTypes: any | null;
   categories: any | null;
@@ -15,7 +15,7 @@ interface AppState {
   plants: any | null;
   isLoggedin: boolean;
   setUser: (user: any) => void;
-  setToken: (token: string) => void;
+  // setToken: (token: string) => void;
   setMenu: (menu: any) => void;
   setBusinessTypes: (businessTypes: any) => void;
   setCategories: (categories: any) => void;
@@ -32,7 +32,7 @@ export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
       user: null,
-      token: null,
+      // token: null,
       menu: null,
       organization: null,
       businessTypes: null,
@@ -44,7 +44,7 @@ export const useAppStore = create<AppState>()(
       masterCategories: null,
       isLoggedin: false,
       setUser: (user) => set({ user }),
-      setToken: (token) => set({ token }),
+      // setToken: (token) => set({ token }),
       setMenu: (menu) => set({ menu }),
       setOrganization: (organization) => set({ organization }),
       setBusinessTypes: (businessTypes) => set({ businessTypes }),

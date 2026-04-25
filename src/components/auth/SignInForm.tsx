@@ -17,7 +17,7 @@ export default function SignInForm() {
 
   const router = useRouter();
   const { login } = authApis;
-  const { isLoading, setLoading, setOrganization } = useAppStore();
+  const { isLoading, setLoading, setLoggedIn, setOrganization } = useAppStore();
 
   const formValidation = () => {
     const { email, password } = formData
@@ -45,8 +45,11 @@ export default function SignInForm() {
         return;
       }
       const response = await login(formData);
-      const { accessToken, ...rest } = response.data;
+      const payload = response?.data ?? response;
+      const { accessToken, ...rest } = payload;
+
       setOrganization(rest);
+      setLoggedIn(true);
       setFormData(prev => ({ ...prev, email: "", password: "" }));
       router.push("/dashboard")
     } catch (error) {

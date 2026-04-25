@@ -306,13 +306,6 @@ export default function LogReportPage() {
                 </div>
             </div>
 
-            {/* Filters */}
-            <Filter
-                fields={filterFields}
-                onFilter={(vals) => setFilters(vals)}
-                title="Log Filters"
-            />
-
             {/* Metrics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <MetricCard
@@ -361,16 +354,25 @@ export default function LogReportPage() {
                         </span>
                     )}
                 </div>
+                <div className="px-6 pt-4">
+                    <Filter
+                        fields={filterFields}
+                        onFilter={(vals) => setFilters(vals)}
+                        title="Log Filters"
+                    />
+                </div>
 
                 {isLoading ? (
-                    <div className="p-10">
+                    <div className="p-10 pt-6">
                         <TableLoader message="Fetching log data..." />
                     </div>
                 ) : (
-                    <DataTable
-                        columns={isFiltered ? rawColumns : summaryColumns}
-                        data={isFiltered ? rawLogs : summaryData}
-                    />
+                    <div className="pt-4">
+                        <DataTable
+                            columns={isFiltered ? rawColumns : summaryColumns}
+                            data={isFiltered ? rawLogs : summaryData}
+                        />
+                    </div>
                 )}
             </div>
         </div>

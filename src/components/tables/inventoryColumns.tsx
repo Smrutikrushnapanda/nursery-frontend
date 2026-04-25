@@ -150,9 +150,11 @@ export function getInventoryColumns({
           <p className="font-medium text-gray-800 text-theme-sm">
             {row.original.variant?.plant?.name ?? "-"}
           </p>
-          <p className="text-gray-500 text-xs">
-            {row.original.variant?.plant?.scientificName ?? row.original.variant?.size ?? "-"}
-          </p>
+          {row.original.variant?.plant?.scientificName && (
+            <p className="text-gray-500 text-xs italic">
+              {row.original.variant?.plant?.scientificName}
+            </p>
+          )}
         </div>
       ),
     },
