@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { Sprout } from "lucide-react";
 import { DataTable } from "@/components/tables/DataTable";
 import { masterApis } from "@/utils/api/api";
@@ -108,7 +108,7 @@ export default function Page() {
     },
   ], [categories, subCategories]);
 
-  const handleFilter = (values: Record<string, any>) => {
+  const handleFilter = useCallback((values: Record<string, any>) => {
     let filtered = [...plants];
 
     if (values.category) {
@@ -129,7 +129,11 @@ export default function Page() {
     }
 
     setFilteredPlants(filtered);
-  };
+  }, [plants]);
+
+  const handleReset = useCallback(() => {
+    setFilteredPlants(plants);
+  }, [plants]);
 
   return (
     <div className="space-y-6">
@@ -145,7 +149,7 @@ export default function Page() {
         </Link>
       </div>
 
-      <Filter fields={filterFields} onFilter={handleFilter} onReset={() => setFilteredPlants(plants)} />
+      <Filter fields={filterFields} onFilter={handleFilter} onReset={handleReset} />
 
       {error ? (
         <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
