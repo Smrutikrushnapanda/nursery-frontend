@@ -12,14 +12,22 @@ interface WeekSalesChartProps {
   data?: number[];
 }
 
+const DEFAULT_WEEK_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+const DEFAULT_SALES_DATA = [0, 0, 0, 0, 0, 0, 0]
+
 export default function WeekSalesChart({
-  categories = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-  data = [0, 0, 0, 0, 0, 0, 0]
+  categories = DEFAULT_WEEK_DAYS,
+  data = DEFAULT_SALES_DATA
 }: WeekSalesChartProps) {
-  const weekDays = categories
-  const salesData = data
+  const hasChartData = categories.length > 0 && data.length > 0
+  const chartLength = hasChartData ? Math.min(categories.length, data.length) : DEFAULT_WEEK_DAYS.length
+  const weekDays = hasChartData ? categories.slice(0, chartLength) : DEFAULT_WEEK_DAYS
+  const salesData = hasChartData ? data.slice(0, chartLength) : DEFAULT_SALES_DATA
   const totalSales = salesData.reduce((acc, curr) => acc + curr, 0)
   const peakIndex = salesData.indexOf(Math.max(...salesData))
+  const peakDay = weekDays[peakIndex] ?? DEFAULT_WEEK_DAYS[0]
+  const peakSales = salesData[peakIndex] ?? 0
+  const dailyAverage = salesData.length > 0 ? Math.round(totalSales / salesData.length) : 0
 
   const options: ApexOptions = {
     colors: ["#346739"],
@@ -119,14 +127,14 @@ export default function WeekSalesChart({
             <div>
               <p className="text-xs text-gray-500">Best Day</p>
               <p className="text-sm font-semibold text-gray-700">
-                {weekDays[peakIndex]} • ₹{salesData[peakIndex].toLocaleString()}
+                {peakDay} • ₹{peakSales.toLocaleString()}
               </p>
             </div>
             <div className="h-8 w-px bg-brand-200" />
             <div>
               <p className="text-xs text-gray-500">Daily Average</p>
               <p className="text-sm font-semibold text-gray-700">
-                ₹{Math.round(totalSales / salesData.length).toLocaleString()}
+                ₹{dailyAverage.toLocaleString()}
               </p>
             </div>
           </div>
