@@ -890,3 +890,19 @@ export const subscriptionApis = {
         }
     },
 }
+
+export const invoiceApis = {
+    download: async (orderId: number) => {
+        try {
+
+            const { data } = await api.get(`/invoices/${orderId}/download`, {
+                withCredentials: true,
+            })
+
+            return data;
+
+        } catch (error) {
+            throw getApiError(error);
+        }
+    }
+}

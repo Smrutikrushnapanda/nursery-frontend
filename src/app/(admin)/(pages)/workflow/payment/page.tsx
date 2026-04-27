@@ -65,7 +65,12 @@ export default function PaymentsPage() {
     try {
       const response = await paymentApis.getAllPayments();
       if (response.success) {
-        setPayments(response.data);
+        const data = Array.isArray(response.data?.data) 
+          ? response.data.data 
+          : Array.isArray(response.data) 
+            ? response.data 
+            : [];
+        setPayments(data);
       }
     } catch (error: any) {
       console.error(error);
@@ -88,7 +93,8 @@ export default function PaymentsPage() {
   );
 
   const filteredPayments = useMemo(() => {
-    return (payments ?? []).filter((payment) => {
+    const paymentsArray = Array.isArray(payments) ? payments : [];
+    return paymentsArray.filter((payment) => {
       const methodMatch = !filters.method || payment.method === filters.method;
       const statusMatch = !filters.status || payment.status === filters.status;
       const paymentDate = formatDateValue(payment.createdAt);
@@ -143,11 +149,11 @@ export default function PaymentsPage() {
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Status</p>
               <div className="mt-1">
-                <Badge 
-                  size="sm" 
+                <Badge
+                  size="sm"
                   color={
-                    viewingPayment.status === "COMPLETED" ? "success" : 
-                    viewingPayment.status === "PENDING" ? "warning" : "error"
+                    viewingPayment.status === "COMPLETED" ? "success" :
+                      viewingPayment.status === "PENDING" ? "warning" : "error"
                   }
                 >
                   {viewingPayment.status}
