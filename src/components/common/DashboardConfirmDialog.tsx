@@ -12,6 +12,8 @@ type DashboardConfirmDialogProps = {
   confirmLabel?: string;
   cancelLabel?: string;
   confirmClassName?: string;
+  loading?: boolean;
+  loadingLabel?: string;
 };
 
 export function DashboardConfirmDialog({
@@ -23,6 +25,8 @@ export function DashboardConfirmDialog({
   confirmLabel = "Confirm",
   cancelLabel = "Cancel",
   confirmClassName = "rounded-xl bg-red-600 hover:bg-red-700",
+  loading = false,
+  loadingLabel = "Loading...",
 }: DashboardConfirmDialogProps) {
   return (
     <DashboardDialog
@@ -33,11 +37,11 @@ export function DashboardConfirmDialog({
       className="mx-4 max-w-md p-6 sm:p-8"
       footer={
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-          <Button type="button" variant="outline" className="rounded-xl" onClick={onClose}>
+          <Button type="button" variant="outline" className="rounded-xl" onClick={onClose} disabled={loading}>
             {cancelLabel}
           </Button>
-          <Button type="button" className={confirmClassName} onClick={onConfirm}>
-            {confirmLabel}
+          <Button type="button" className={confirmClassName} onClick={onConfirm} disabled={loading}>
+            {loading ? loadingLabel : confirmLabel}
           </Button>
         </div>
       }

@@ -11,6 +11,14 @@ export type SalesData = {
 export function getSalesReportColumns(): ColumnDef<SalesData>[] {
   return [
     {
+      id: "slNo",
+      header: "Sl No",
+      cell: ({ row }) => (
+        <span className="text-gray-500 font-medium">{row.index + 1}</span>
+      ),
+      size: 50,
+    },
+    {
       accessorKey: "period",
       header: "Period / Date",
       cell: ({ row }) => (

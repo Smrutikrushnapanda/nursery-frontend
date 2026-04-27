@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 import { DashboardConfirmDialog } from "@/components/common/DashboardConfirmDialog";
@@ -29,6 +29,7 @@ export default function Page() {
   const [plants, setPlants] = useState<PlantOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingVariantId, setEditingVariantId] = useState<number | null>(null);
@@ -36,6 +37,7 @@ export default function Page() {
   const [viewingVariant, setViewingVariant] = useState<PlantVariantItem | null>(null);
   const [form, setForm] = useState<PlantVariantForm>(initialForm);
   const [filters, setFilters] = useState<Record<string, any>>({});
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
 
   const filterFields: FilterField[] = useMemo(() => [
     {
@@ -77,6 +79,13 @@ export default function Page() {
       return plantMatch && sizeMatch && statusMatch;
     });
   }, [variants, filters]);
+
+  const handleFilter = useCallback((vals: Record<string, any>) => {
+    setFilters(vals);
+    setPagination((prev) => (
+      prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
+    ));
+  }, []);
 
   const fetchVariants = async () => {
     setLoading(true);
@@ -141,6 +150,7 @@ export default function Page() {
   };
 
   const handleDelete = async (variant: PlantVariantItem) => {
+    setDeleting(true);
     try {
       await masterApis.deletePlantVariant(variant.id);
       await fetchVariants();
@@ -148,6 +158,8 @@ export default function Page() {
     } catch (err: any) {
       console.log(err);
       alert(err?.message || "Failed to delete plant variant");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -177,12 +189,20 @@ export default function Page() {
   const columns = useMemo<ColumnDef<PlantVariantItem>[]>(
     () => [
       {
+        id: "slNo",
+        header: "Sl No",
+        cell: ({ row }) => (
+          <span className="text-gray-500 font-medium">{row.index + 1}</span>
+        ),
+        size: 50,
+      },
+      {
         accessorKey: "plant.name",
         header: "Plant",
         cell: ({ row }) => (
           <div className="space-y-0.5">
             <p className="font-semibold text-gray-900">{row.original.plant?.name ?? "-"}</p>
-            <p className="text-xs text-gray-500">{row.original.plant?.scientificName ?? "-"}</p>
+            <p className="text-xs text-gray-500 italic">{row.original.plant?.scientificName ?? "-"}</p>
           </div>
         ),
       },
@@ -273,6 +293,26 @@ export default function Page() {
     []
   );
 
+  const handleDownloadExcel = async () => {
+    const { utils, writeFile } = await import('xlsx');
+    
+    if (variants.length === 0) return;
+
+    const worksheet = utils.json_to_sheet(variants.map(v => ({
+       ID: v.id,
+       Plant: v.plant?.name || "-",
+       Size: v.size,
+       Price: v.price,
+       Stock: v.stockQuantity,
+       MinQty: v.minQuantity,
+       Status: v.status ? "Active" : "Inactive"
+    })));
+    
+    const workbook = utils.book_new();
+    utils.book_append_sheet(workbook, worksheet, "Variants");
+    writeFile(workbook, `variants_master_${new Date().getTime()}.xlsx`);
+  };
+
   return (
     <div className="space-y-6">
       <div className="w-full flex justify-end">
@@ -283,7 +323,7 @@ export default function Page() {
 
       <Filter 
         fields={filterFields} 
-        onFilter={setFilters} 
+        onFilter={handleFilter} 
         title="Variant Filters"
       />
 
@@ -294,7 +334,14 @@ export default function Page() {
       ) : loading ? (
         <TableLoader message="Loading plant variant master data..." />
       ) : (
-        <DataTable columns={columns} data={filteredVariants} defaultPageSize={10} />
+        <DataTable
+          columns={columns}
+          data={filteredVariants}
+          defaultPageSize={10}
+          pagination={pagination}
+          onPaginationChange={setPagination}
+          onDownloadAll={handleDownloadExcel}
+        />
       )}
 
       <DashboardDialog
@@ -437,9 +484,13 @@ export default function Page() {
 
       <DashboardConfirmDialog
         isOpen={Boolean(deletingVariant)}
-        onClose={() => setDeletingVariant(null)}
+        onClose={() => {
+          if (!deleting) {
+            setDeletingVariant(null);
+          }
+        }}
         onConfirm={() => {
-          if (deletingVariant) {
+          if (deletingVariant && !deleting) {
             void handleDelete(deletingVariant);
           }
         }}
@@ -450,6 +501,8 @@ export default function Page() {
             : "This action will delete the selected plant variant."
         }
         confirmLabel="Delete"
+        loading={deleting}
+        loadingLabel="Deleting..."
       />
 
       <DashboardDialog

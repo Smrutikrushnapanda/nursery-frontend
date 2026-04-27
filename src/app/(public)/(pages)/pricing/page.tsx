@@ -6,6 +6,7 @@ import { Check, X, Sparkles } from "lucide-react";
 import { Reveal, RevealStagger, RevealItem } from "@/src/components/Reveal";
 import Link from "next/link";
 import { plansApi } from "@/src/utils/api/api";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const ALL_FEATURES = [
   { key: "INVENTORY", text: "Inventory Management" },
@@ -28,8 +29,17 @@ const getPlanDescription = (name: string) => {
 }
 
 export default function PricingPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [plans, setPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (searchParams.get("alert") === "purchase-plan") {
+      alert("Purchase a plan to access the dashboard");
+      router.replace("/pricing");
+    }
+  }, [router, searchParams]);
 
   useEffect(() => {
     const fetchPlans = async () => {

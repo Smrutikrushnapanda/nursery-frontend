@@ -14,6 +14,12 @@ export type InventoryItem = {
   variantId: number
   quantity: number
   updatedAt: string
+  qrCode?: {
+    id: number
+    code: string
+    qrImageBase64: string
+    alreadyGenerated: number
+  }
   variant: {
     id: number
     size: string
@@ -142,6 +148,14 @@ export function getInventoryColumns({
   onDeadStock,
 }: InventoryColumnOptions): ColumnDef<InventoryItem>[] {
   return [
+    {
+      id: "slNo",
+      header: "Sl No",
+      cell: ({ row }) => (
+        <span className="text-gray-500 font-medium">{row.index + 1}</span>
+      ),
+      size: 50,
+    },
     {
       accessorKey: "variant.plant.name",
       header: "Plant",

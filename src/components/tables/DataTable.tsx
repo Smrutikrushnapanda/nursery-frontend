@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import {
   ColumnDef,
   SortingState,
@@ -18,6 +18,9 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  Download,
+  FileSpreadsheet,
+  Loader2,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -35,6 +38,13 @@ interface DataTableProps<TData, TValue> {
   data: TData[]
   pageSizeOptions?: number[]
   defaultPageSize?: number
+  manualPagination?: boolean
+  pageCount?: number
+  totalCount?: number
+  pagination?: { pageIndex: number; pageSize: number }
+  onPaginationChange?: (pagination: { pageIndex: number; pageSize: number }) => void
+  onDownloadAll?: () => void
+  isDownloading?: boolean
 }
 
 export function DataTable<TData, TValue>({
@@ -42,30 +52,47 @@ export function DataTable<TData, TValue>({
   data,
   pageSizeOptions = [10, 20, 30, 50],
   defaultPageSize = 10,
+  manualPagination = false,
+  pageCount,
+  totalCount,
+  onPaginationChange,
+  pagination: externalPagination,
+  onDownloadAll,
+  isDownloading = false,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([])
-  const [pagination, setPagination] = useState({
+  const [internalPagination, setInternalPagination] = useState({
     pageIndex: 0,
     pageSize: defaultPageSize,
   })
 
+  const pagination = externalPagination ?? internalPagination
+
+  const handlePaginationChange = useCallback((updater: any) => {
+    const nextPagination = typeof updater === 'function' ? updater(pagination) : updater
+    setInternalPagination(nextPagination)
+    onPaginationChange?.(nextPagination)
+  }, [onPaginationChange, pagination])
+
   const table = useReactTable({
     data,
     columns,
+    pageCount: manualPagination ? pageCount : undefined,
+    manualPagination,
     state: {
       sorting,
-      pagination,
+      pagination: pagination,
     },
     onSortingChange: setSorting,
-    onPaginationChange: setPagination,
+    onPaginationChange: handlePaginationChange,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    getPaginationRowModel: manualPagination ? undefined : getPaginationRowModel(),
   })
 
-  const totalRows = table.getPrePaginationRowModel().rows.length
+  const totalRows = totalCount ?? (manualPagination ? (pageCount ?? 0) * pagination.pageSize : table.getPrePaginationRowModel().rows.length)
   const currentRows = table.getRowModel().rows.length
-  const safePageCount = Math.max(table.getPageCount(), 1)
+  const safePageCount = manualPagination ? (pageCount ?? 1) : Math.max(table.getPageCount(), 1)
   const startRow =
     totalRows === 0 ? 0 : pagination.pageIndex * pagination.pageSize + 1
   const endRow = totalRows === 0 ? 0 : startRow + currentRows - 1
@@ -78,8 +105,38 @@ export function DataTable<TData, TValue>({
       : <ArrowUp className="ml-1 h-3.5 w-3.5 text-brand-600" />
   }
 
+  useEffect(() => {
+    const lastValidPageIndex = Math.max(safePageCount - 1, 0)
+    if (pagination.pageIndex > lastValidPageIndex) {
+      handlePaginationChange({
+        pageIndex: lastValidPageIndex,
+        pageSize: pagination.pageSize,
+      })
+    }
+  }, [handlePaginationChange, pagination.pageIndex, pagination.pageSize, safePageCount])
+
   return (
     <div className="space-y-4">
+      {/* Top Actions */}
+      <div className="flex items-center justify-end gap-2 px-1">
+        {onDownloadAll && (
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={onDownloadAll}
+            className="h-9 rounded-xl shadow-md transition-all active:scale-95"
+            disabled={isDownloading || totalRows === 0}
+          >
+            {isDownloading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="mr-2 h-4 w-4" />
+            )}
+            Download
+          </Button>
+        )}
+      </div>
+
       {/* Table Container */}
       <div className="group relative rounded-2xl bg-white shadow-theme-md transition-all duration-500 hover:shadow-theme-xl">
         {/* Glow container to prevent horizontal scroll */}
@@ -192,18 +249,23 @@ export function DataTable<TData, TValue>({
           </div>
           <p className="text-sm font-medium text-gray-600">
             {totalRows > 0
-              ? `Showing ${startRow}-${endRow} of ${totalRows} entries`
-              : "No entries to display"}
+              ? `Showing ${startRow}-${endRow} of ${totalRows}`
+              : "No entries"}
           </p>
         </div>
 
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
           <div className="flex items-center gap-3">
-            <label className="text-sm font-medium text-gray-600">Rows per page</label>
+            <label className="text-sm font-medium text-gray-600">Rows</label>
             <div className="relative">
               <select
                 value={pagination.pageSize}
-                onChange={(event) => table.setPageSize(Number(event.target.value))}
+                onChange={(event) =>
+                  table.setPagination({
+                    pageIndex: 0,
+                    pageSize: Number(event.target.value),
+                  })
+                }
                 className="h-9 appearance-none rounded-lg border-2 border-brand-200 bg-white py-1.5 pl-3 pr-8 text-sm font-medium text-gray-700 outline-none transition-all focus:border-brand-400 focus:ring-2 focus:ring-brand-500/20"
               >
                 {pageSizeOptions.map((size) => (
@@ -220,79 +282,35 @@ export function DataTable<TData, TValue>({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 items-center rounded-lg border border-brand-200 bg-brand-25/50 px-3">
-              <span className="text-sm font-semibold text-brand-700">{pagination.pageIndex + 1}</span>
-              <span className="mx-1 text-brand-300">/</span>
-              <span className="text-sm font-medium text-gray-500">{safePageCount}</span>
-            </div>
-          </div>
-
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => table.setPageIndex(0)}
               disabled={!table.getCanPreviousPage()}
-              aria-label="First page"
-              className="group flex h-9 w-9 items-center justify-center rounded-lg border-2 border-brand-200 bg-white text-brand-600 transition-all hover:border-brand-300 hover:bg-brand-50 hover:shadow-sm disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-brand-200"
+              className="group flex h-9 w-9 items-center justify-center rounded-lg border-2 border-brand-200 bg-white text-brand-600 transition-all hover:border-brand-300 hover:bg-brand-50 disabled:opacity-40"
             >
-              <ChevronFirst className="h-4 w-4 transition-transform group-hover:scale-110" />
+              <ChevronFirst className="h-4 w-4" />
             </button>
             <button
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
-              aria-label="Previous page"
-              className="group flex h-9 w-9 items-center justify-center rounded-lg border-2 border-brand-200 bg-white text-brand-600 transition-all hover:border-brand-300 hover:bg-brand-50 hover:shadow-sm disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-brand-200"
+              className="group flex h-9 w-9 items-center justify-center rounded-lg border-2 border-brand-200 bg-white text-brand-600 transition-all hover:border-brand-300 hover:bg-brand-50 disabled:opacity-40"
             >
-              <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
+              <ChevronLeft className="h-4 w-4" />
             </button>
-            
-            {/* Quick page numbers */}
-            <div className="hidden sm:flex items-center gap-1">
-              {Array.from({ length: Math.min(5, safePageCount) }, (_, i) => {
-                let pageNum: number
-                if (safePageCount <= 5) {
-                  pageNum = i
-                } else if (pagination.pageIndex < 3) {
-                  pageNum = i
-                } else if (pagination.pageIndex > safePageCount - 4) {
-                  pageNum = safePageCount - 5 + i
-                } else {
-                  pageNum = pagination.pageIndex - 2 + i
-                }
-                
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => table.setPageIndex(pageNum)}
-                    className={`
-                      flex h-9 w-9 items-center justify-center rounded-lg border-2 text-sm font-medium transition-all
-                      ${pageNum === pagination.pageIndex
-                        ? 'border-brand-500 bg-brand-500 text-white shadow-md'
-                        : 'border-brand-200 bg-white text-brand-700 hover:border-brand-300 hover:bg-brand-50'
-                      }
-                    `}
-                  >
-                    {pageNum + 1}
-                  </button>
-                )
-              })}
-            </div>
             
             <button
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
-              aria-label="Next page"
-              className="group flex h-9 w-9 items-center justify-center rounded-lg border-2 border-brand-200 bg-white text-brand-600 transition-all hover:border-brand-300 hover:bg-brand-50 hover:shadow-sm disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-brand-200"
+              className="group flex h-9 w-9 items-center justify-center rounded-lg border-2 border-brand-200 bg-white text-brand-600 transition-all hover:border-brand-300 hover:bg-brand-50 disabled:opacity-40"
             >
-              <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              <ChevronRight className="h-4 w-4" />
             </button>
             <button
               onClick={() => table.setPageIndex(safePageCount - 1)}
               disabled={!table.getCanNextPage()}
-              aria-label="Last page"
-              className="group flex h-9 w-9 items-center justify-center rounded-lg border-2 border-brand-200 bg-white text-brand-600 transition-all hover:border-brand-300 hover:bg-brand-50 hover:shadow-sm disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-brand-200"
+              className="group flex h-9 w-9 items-center justify-center rounded-lg border-2 border-brand-200 bg-white text-brand-600 transition-all hover:border-brand-300 hover:bg-brand-50 disabled:opacity-40"
             >
-              <ChevronLast className="h-4 w-4 transition-transform group-hover:scale-110" />
+              <ChevronLast className="h-4 w-4" />
             </button>
           </div>
         </div>

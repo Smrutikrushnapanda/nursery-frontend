@@ -34,14 +34,28 @@ api.interceptors.response.use(
 );
 
 const getApiError = (error: any) => {
+    console.error("API Error context:", {
+        message: error?.message,
+        status: error?.response?.status,
+        data: error?.response?.data,
+        url: error?.config?.url
+    });
+
     const responseData = error?.response?.data;
 
-    if (typeof responseData?.message === "string") {
-        return new Error(responseData.message);
+    if (responseData && typeof responseData === 'object') {
+        if (typeof responseData.message === "string") {
+            return new Error(responseData.message);
+        }
+
+        if (Array.isArray(responseData.message)) {
+            return new Error(responseData.message.join(", "));
+        }
     }
 
-    if (Array.isArray(responseData?.message)) {
-        return new Error(responseData.message.join(", "));
+    // If it's a string like "null" or something that isn't an object
+    if (typeof responseData === 'string') {
+        return new Error(responseData);
     }
 
     return error;
@@ -174,10 +188,11 @@ export const organizationApis = {
 
 export const masterApis = {
     //Master apis for menus
-    getMenu: async () => {
+    getMenu: async (subscriptionId?: string | number) => {
         try {
 
             const { data } = await api.get("/master/menus", {
+                params: subscriptionId ? { subscriptionId } : undefined,
                 headers: { 'X-Global-Loader': 'true' }
             });
 
@@ -651,9 +666,9 @@ export const plansApi = {
 
 export const qrApis = {
 
-    generateQrCode: async (id: number) => {
+    generateQrCode: async (plantId: number, variantId: number) => {
         try {
-            const { data } = await api.post(`/qr/generate/${id}`, null, {
+            const { data } = await api.post(`/qr/generate/${plantId}/${variantId}`, {}, {
                 withCredentials: true
             })
             return data
@@ -684,9 +699,11 @@ export const qrApis = {
         }
     },
 
-    generateInBulk: async (categoryId: number, subcategoryId: number) => {
+    generateInBulk: async (categoryId: number, subcategoryId: number, plantIds: number[]) => {
         try {
-            const { data } = await api.post(`/qr/generate/bulk?categoryId=${categoryId}&subcategoryId=${subcategoryId}`, null, {
+            const { data } = await api.post(`/qr/generate/bulk?categoryId=${categoryId}&subcategoryId=${subcategoryId}`, {
+                plantIds
+            }, {
                 withCredentials: true
             })
 
@@ -696,7 +713,6 @@ export const qrApis = {
         }
     }
 }
-
 
 export const paymentApis = {
     getAllPayments: async () => {
@@ -812,9 +828,10 @@ export const reportApis = {
 }
 
 export const ordersApis = {
-    getAllOrders: async () => {
+    getAllOrders: async (params?: any) => {
         try {
             const { data } = await api.get("/orders", {
+                params,
                 withCredentials: true
             });
             return data;
@@ -839,7 +856,8 @@ export const subscriptionApis = {
     getActiveSubscription: async () => {
         try {
             const { data } = await api.get("/subscriptions/me", {
-                withCredentials: true
+                withCredentials: true,
+                headers: { 'X-Global-Loader': 'true' }
             })
 
             return data;
@@ -897,9 +915,50 @@ export const invoiceApis = {
 
             const { data } = await api.get(`/invoices/${orderId}/download`, {
                 withCredentials: true,
+                responseType: 'blob'
             })
 
             return data;
+
+        } catch (error) {
+            throw getApiError(error);
+        }
+    }
+}
+
+export const billingApis = {
+    bill: async (billData: any) => {
+        try {
+            const { data } = await api.post("/billing/manual", billData, {
+                withCredentials: true
+            })
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    getActivePlants: async () => {
+        try {
+            const { data } = await api.get("/billing/plants", {
+                withCredentials: true
+            })
+
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    getPlantVariant: async (plantId: number) => {
+        try {
+
+            const { data } = await api.get(`/billing/plants/${plantId}/variants`, {
+                withCredentials: true
+            })
+
+            return data
 
         } catch (error) {
             throw getApiError(error);

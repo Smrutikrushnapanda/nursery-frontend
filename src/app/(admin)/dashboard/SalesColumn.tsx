@@ -14,6 +14,14 @@ export type SalesItem = {
 
 export const salesColumns: ColumnDef<SalesItem>[] = [
   {
+    id: "slNo",
+    header: "Sl No",
+    cell: ({ row }) => (
+      <span className="text-gray-500 font-medium">{row.index + 1}</span>
+    ),
+    size: 50,
+  },
+  {
     accessorKey: "plant",
     header: "Plant",
   },

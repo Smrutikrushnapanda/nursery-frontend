@@ -25,6 +25,14 @@ export function getPaymentColumns({
 }): ColumnDef<PaymentItem>[] {
   return [
     {
+      id: "slNo",
+      header: "Sl No",
+      cell: ({ row }) => (
+        <span className="text-gray-500 font-medium">{row.index + 1}</span>
+      ),
+      size: 50,
+    },
+    {
       accessorKey: "id",
       header: "Payment ID",
       cell: ({ row }) => <span className="text-gray-500 font-medium text-theme-sm">#{row.original.id}</span>,

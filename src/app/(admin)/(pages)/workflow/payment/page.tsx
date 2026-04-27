@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { DashboardDialog } from "@/components/common/DashboardDialog";
 import { DataTable } from "@/components/tables/DataTable";
 import { getPaymentColumns, PaymentItem } from "@/components/tables/paymentColumns";
-import { paymentApis } from "@/utils/api/api";
+import { paymentApis, billingApis } from "@/utils/api/api";
 import { TableLoader } from "@/components/table-loader/table-loader";
 import Badge from "@/components/ui/badge/Badge";
 import { Filter, FilterField } from "@/components/common/Filter";
+import { Button } from "@/components/ui/button";
+import { PaymentFormDialog, PaymentFormState } from "@/components/payment/PaymentFormDialog";
+import { CreditCard } from "lucide-react";
 
 const formatDateValue = (date: string) => {
   const parsedDate = new Date(date);
@@ -22,7 +25,10 @@ export default function PaymentsPage() {
   const [payments, setPayments] = useState<PaymentItem[]>([]);
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [viewingPayment, setViewingPayment] = useState<PaymentItem | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [filters, setFilters] = useState<Record<string, any>>({});
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
 
   const filterFields: FilterField[] = useMemo(
     () => [
@@ -60,7 +66,7 @@ export default function PaymentsPage() {
     []
   );
 
-  const fetchPayments = async () => {
+  const fetchData = async () => {
     setIsPageLoading(true);
     try {
       const response = await paymentApis.getAllPayments();
@@ -74,15 +80,45 @@ export default function PaymentsPage() {
       }
     } catch (error: any) {
       console.error(error);
-      // alert(error.message);
     } finally {
       setIsPageLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchPayments();
+    fetchData();
   }, []);
+
+  const handleFormSubmit = async (data: PaymentFormState) => {
+    setSaving(true);
+    try {
+      const payload = {
+        customerName: data.customerName,
+        customerPhone: data.customerPhone,
+        customerEmail: data.customerEmail,
+        paymentMethod: data.paymentMethod,
+        paymentReference: data.paymentReference,
+        items: data.items.map(item => ({
+          plantId: Number(item.plantId),
+          variantId: Number(item.variantId),
+          quantity: Number(item.quantity),
+          unitPrice: Number(item.unitPrice)
+        }))
+      };
+
+      const response = await billingApis.bill(payload);
+      if (response.success) {
+        await fetchData();
+        setIsFormOpen(false);
+      } else {
+        alert(response.message || "Failed to process bill");
+      }
+    } catch (error: any) {
+      alert(error.message || "An error occurred");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const columns = useMemo(
     () =>
@@ -104,21 +140,70 @@ export default function PaymentsPage() {
     });
   }, [payments, filters]);
 
+  const handleFilter = useCallback((vals: Record<string, any>) => {
+    setFilters(vals);
+    setPagination((prev) => (
+      prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
+    ));
+  }, []);
+
+  const handleDownloadExcel = async () => {
+    const { utils, writeFile } = await import('xlsx');
+    
+    if (!payments || payments.length === 0) return;
+
+    const worksheet = utils.json_to_sheet(payments.map(p => ({
+       ID: p.id,
+       OrderID: p.orderId,
+       Amount: p.amount,
+       Method: p.method,
+       Status: p.status,
+       Reference: p.referenceNumber || "-",
+       Date: new Date(p.createdAt).toLocaleString()
+    })));
+    
+    const workbook = utils.book_new();
+    utils.book_append_sheet(workbook, worksheet, "Payments");
+    writeFile(workbook, `payments_master_${new Date().getTime()}.xlsx`);
+  };
+
   if (isPageLoading) return <TableLoader message="Loading Payments..." />;
 
   return (
     <div className="p-6 space-y-4">
       <div className="w-full flex justify-between items-center">
-        <h1 className="text-xl font-semibold text-gray-800 dark:text-white/90">Payments</h1>
+        <h1 className="text-xl font-semibold text-gray-800 dark:text-white/90 flex items-center gap-2">
+          <CreditCard className="w-6 h-6 text-brand-500" />
+          Payments
+        </h1>
+        <Button 
+          onClick={() => setIsFormOpen(true)}
+          className="bg-brand-500 hover:bg-brand-600 text-white rounded-xl shadow-md transition-all active:scale-95"
+        >
+          + Manual Bill
+        </Button>
       </div>
 
       <Filter
         fields={filterFields}
-        onFilter={setFilters}
+        onFilter={handleFilter}
         title="Payment Filters"
       />
 
-      <DataTable columns={columns} data={filteredPayments} />
+      <DataTable
+        columns={columns}
+        data={filteredPayments}
+        pagination={pagination}
+        onPaginationChange={setPagination}
+        onDownloadAll={handleDownloadExcel}
+      />
+
+      <PaymentFormDialog
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        onSubmit={handleFormSubmit}
+        saving={saving}
+      />
 
       <DashboardDialog
         isOpen={Boolean(viewingPayment)}

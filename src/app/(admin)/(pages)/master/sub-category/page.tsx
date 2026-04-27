@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { DashboardConfirmDialog } from "@/components/common/DashboardConfirmDialog";
 import { DataTable } from "@/components/tables/DataTable";
 import { masterApis } from "@/utils/api/api";
@@ -18,12 +18,14 @@ export default function Page() {
   const [subCategories, setSubCategories] = useState<SubcategoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSubCategoryId, setEditingSubCategoryId] = useState<number | null>(null);
   const [deletingSubCategory, setDeletingSubCategory] = useState<SubcategoryItem | null>(null);
   const [form, setForm] = useState<SubcategoryForm>(initialForm);
   const [filters, setFilters] = useState<Record<string, any>>({});
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const { masterCategories, setMasterCategories } = useAppStore();
 
   const categoryOptions = useMemo(
@@ -87,6 +89,13 @@ export default function Page() {
       return categoryMatch && subCategoryMatch;
     });
   }, [subCategories, filters]);
+
+  const handleFilter = useCallback((vals: Record<string, any>) => {
+    setFilters(vals);
+    setPagination((prev) => (
+      prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
+    ));
+  }, []);
 
   const fetchCategories = async () => {
     try {
@@ -152,6 +161,7 @@ export default function Page() {
   };
 
   const handleDelete = async (subCategory: SubcategoryItem) => {
+    setDeleting(true);
     try {
       await masterApis.deleteSubCategory(subCategory.id);
       await fetchPageData();
@@ -159,6 +169,8 @@ export default function Page() {
     } catch (err: any) {
       console.log(err);
       alert(err?.message || "Failed to delete sub-category");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -203,7 +215,7 @@ export default function Page() {
 
       <Filter 
         fields={filterFields} 
-        onFilter={setFilters} 
+        onFilter={handleFilter} 
         title="Sub-category Filters"
       />
 
@@ -214,7 +226,13 @@ export default function Page() {
       ) : loading ? (
        <TableLoader message="Loading sub-categories..." />
       ) : (
-        <DataTable columns={columns} data={filteredSubCategories} defaultPageSize={10} />
+        <DataTable
+          columns={columns}
+          data={filteredSubCategories}
+          defaultPageSize={10}
+          pagination={pagination}
+          onPaginationChange={setPagination}
+        />
       )}
 
       <SubCategoryFormDialog
@@ -231,9 +249,13 @@ export default function Page() {
 
       <DashboardConfirmDialog
         isOpen={Boolean(deletingSubCategory)}
-        onClose={() => setDeletingSubCategory(null)}
+        onClose={() => {
+          if (!deleting) {
+            setDeletingSubCategory(null);
+          }
+        }}
         onConfirm={() => {
-          if (deletingSubCategory) {
+          if (deletingSubCategory && !deleting) {
             void handleDelete(deletingSubCategory);
           }
         }}
@@ -244,6 +266,8 @@ export default function Page() {
             : "This action will delete the selected sub-category."
         }
         confirmLabel="Delete"
+        loading={deleting}
+        loadingLabel="Deleting..."
       />
     </div>
   );

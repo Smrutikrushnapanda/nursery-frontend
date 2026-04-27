@@ -27,6 +27,14 @@ export function getQrColumns({
 }): ColumnDef<QrCodeItem>[] {
   return [
     {
+      id: "slNo",
+      header: "Sl No",
+      cell: ({ row }) => (
+        <span className="text-gray-500 font-medium">{row.index + 1}</span>
+      ),
+      size: 50,
+    },
+    {
       accessorKey: "id",
       header: "ID",
       cell: ({ row }) => <span className="text-gray-500">#{row.original.id}</span>,
@@ -37,7 +45,7 @@ export function getQrColumns({
       cell: ({ row }) => (
         <div className="space-y-0.5">
           <p className="font-medium text-gray-800">{row.original.plant?.name ?? "-"}</p>
-          <p className="text-xs text-gray-500">{row.original.plant?.scientificName ?? "-"}</p>
+          <p className="text-xs text-gray-500 italic">{row.original.plant?.scientificName ?? "-"}</p>
         </div>
       ),
     },

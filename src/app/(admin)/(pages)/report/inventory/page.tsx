@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { DataTable } from "@/components/tables/DataTable"
 import { getInventoryReportColumns, InventoryItemData } from "@/components/tables/inventoryReportColumns"
 import { reportApis } from "@/utils/api/api"
@@ -13,6 +13,7 @@ export default function InventoryReportsPage() {
   const [totalValue, setTotalValue] = useState<number>(0)
   const [isLoading, setIsLoading] = useState(true)
   const [filters, setFilters] = useState<Record<string, any>>({})
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
 
   const fetchInventoryReport = async () => {
     setIsLoading(true)
@@ -31,6 +32,13 @@ export default function InventoryReportsPage() {
 
   useEffect(() => {
     fetchInventoryReport()
+  }, [])
+
+  const handleFilter = useCallback((vals: Record<string, any>) => {
+    setFilters(vals)
+    setPagination((prev) => (
+      prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
+    ))
   }, [])
 
   const filterFields: FilterField[] = [
@@ -158,17 +166,44 @@ export default function InventoryReportsPage() {
         <div className="px-4 pt-4 2xl:px-6">
           <Filter
             fields={filterFields}
-            onFilter={setFilters}
+            onFilter={handleFilter}
             title="Inventory Filters"
           />
         </div>
         <div className="flex-1 relative pt-4 2xl:pt-6">
-          <DataTable columns={columns} data={filteredData} />
+          <DataTable
+            columns={columns}
+            data={filteredData}
+            pagination={pagination}
+            onPaginationChange={setPagination}
+            onDownloadAll={() => handleDownloadExcel(filteredData)}
+          />
         </div>
       </div>
     </div>
   )
 }
+
+const handleDownloadExcel = async (data: InventoryItemData[]) => {
+  const { utils, writeFile } = await import('xlsx');
+  
+  const dataToExport = data;
+
+  if (dataToExport.length === 0) return;
+
+  const worksheet = utils.json_to_sheet(dataToExport.map((item: any) => ({
+     "Plant": item.plantName,
+     "SKU": item.sku,
+     "Price": item.price,
+     "Stock Qty": item.stockQty,
+     "Total Value": item.stockValue,
+     "Status": item.stockQty > 10 ? "In Stock" : item.stockQty > 0 ? "Low Stock" : "Out of Stock"
+  })));
+  
+  const workbook = utils.book_new();
+  utils.book_append_sheet(workbook, worksheet, "Inventory Report");
+  writeFile(workbook, `inventory_report_${new Date().toISOString().split('T')[0]}.xlsx`);
+};
 
 function MetricCard({ title, value, icon, trend, color }: {
   title: string,

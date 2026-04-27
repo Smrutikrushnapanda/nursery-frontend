@@ -70,9 +70,9 @@ const AppSidebar: React.FC = () => {
   const [isLoadingSubscription, setIsLoadingSubscription] = useState(true);
 
   //getting menus
-  const fetchMenus = async () => {
+  const fetchMenus = async (subscriptionId?: string | number) => {
     try {
-      const response = await getMenu();
+      const response = await getMenu(subscriptionId);
       setMenu(response.data);
     } catch (error) {
       console.error("Failed to fetch menu:", error);
@@ -85,16 +85,19 @@ const AppSidebar: React.FC = () => {
       const response = await subscriptionApis.getActiveSubscription();
       if (response.success) {
         setSubscription(response.data);
+        await fetchMenus(response.data?.id);
+        return;
       }
     } catch (error) {
       console.error("Failed to fetch subscription:", error);
     } finally {
       setIsLoadingSubscription(false);
     }
+
+    await fetchMenus();
   };
 
   useEffect(() => {
-    fetchMenus();
     fetchSubscription();
   }, []);
 

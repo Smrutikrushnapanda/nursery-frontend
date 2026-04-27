@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { masterApis } from "@/utils/api/api";
 import { useAppStore } from "@/utils/store/store";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { initialForm, MAX_IMAGE_UPLOADS } from "./config";
 import { Category, PlantFormState, Subcategory } from "./types";
 import { AddPlantHeader } from "@/components/plant/AddPlantHeader";
@@ -15,6 +15,7 @@ import { TemperatureRangeFields } from "@/components/plant/TemperatureRangeField
 import { PlantTextareas } from "@/components/plant/PlantTextareas";
 import { PetToxicityField } from "@/components/plant/PetToxicityField";
 import { ImageUploadField } from "@/components/plant/ImageUploadField";
+import { TableLoader } from "@/components/table-loader/table-loader";
 
 const normalizeCategory = (item: any): Category => ({
   id: Number(item?.id),
@@ -36,23 +37,27 @@ const normalizeSubcategory = (item: any, selectedCategoryId?: number): Subcatego
 export default function AddPlantPage() {
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const [form, setForm] = useState<PlantFormState>(initialForm);
+  const [originalForm, setOriginalForm] = useState<PlantFormState | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [filteredSubcategories, setFilteredSubcategories] = useState<Subcategory[]>([]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const { getCategories, getSubCategories, createPlant } = masterApis;
+  const editId = searchParams.get("edit");
+  const isEdit = Boolean(editId);
+
+  const { getCategories, getSubCategories, createPlant, updatePlant, getPlantById } = masterApis;
   const { plants, setPlants } = useAppStore();
 
   const fetchCategories = async () => {
-    setLoading(true);
     try {
       const response = await getCategories();
       if (response.success) {
-        // Handle potential nested data structure from backend wrapper
         const rawData = response.data;
         const categoriesList = Array.isArray(rawData) 
           ? rawData 
@@ -63,8 +68,6 @@ export default function AddPlantPage() {
       }
     } catch (error) {
       console.log(error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -74,7 +77,6 @@ export default function AddPlantPage() {
       return;
     }
 
-    setLoading(true);
     try {
       const response = await getSubCategories(Number(form.categoryId));
       if (response.success) {
@@ -86,14 +88,60 @@ export default function AddPlantPage() {
       }
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  const fetchPlantForEdit = async () => {
+    if (!editId) return;
+
+    setPageLoading(true);
+    try {
+      const response = await getPlantById(Number(editId));
+      if (response.success) {
+        const plant = response.data?.data || response.data;
+
+        const editForm: PlantFormState = {
+          name: plant.name ?? "",
+          sku: plant.sku ?? "",
+          price: plant.price?.toString() ?? "",
+          description: plant.description ?? "",
+          careInstructions: plant.careInstructions ?? "",
+          waterRequirement: plant.waterRequirement ?? "",
+          sunlightRequirement: plant.sunlightRequirement ?? "",
+          temperatureMin: plant.temperatureMin?.toString() ?? "",
+          temperatureMax: plant.temperatureMax?.toString() ?? "",
+          humidityLevel: plant.humidityLevel ?? "",
+          soilType: plant.soilType ?? "",
+          fertilizingFrequency: plant.fertilizingFrequency ?? "",
+          pruningFrequency: plant.pruningFrequency ?? "",
+          scientificName: plant.scientificName ?? "",
+          season: plant.season ?? "",
+          categoryId: plant.categoryId?.toString() ?? plant.category?.id?.toString() ?? "",
+          subcategoryId: plant.subcategoryId?.toString() ?? plant.subcategory?.id?.toString() ?? "",
+          petToxicity: plant.petToxicity ?? "",
+          petToxicityNotes: plant.petToxicityNotes ?? "",
+        };
+
+        setForm(editForm);
+        setOriginalForm(editForm);
+      }
+    } catch (error: any) {
+      console.error("Failed to fetch plant:", error);
+      alert(error?.message || "Failed to load plant data");
     } finally {
-      setLoading(false);
+      setPageLoading(false);
     }
   };
 
   useEffect(() => {
     fetchCategories();
   }, []);
+
+  useEffect(() => {
+    if (isEdit) {
+      fetchPlantForEdit();
+    }
+  }, [editId]);
 
   useEffect(() => {
     fetchSubcategories();
@@ -203,20 +251,48 @@ export default function AddPlantPage() {
     return formData;
   };
 
+  const buildEditPayload = () => {
+    if (!originalForm) return {};
+
+    const changed: Record<string, any> = {};
+    for (const key of Object.keys(form) as (keyof PlantFormState)[]) {
+      if (form[key] !== originalForm[key]) {
+        changed[key] = form[key];
+      }
+    }
+
+    return changed;
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const response = await createPlant(buildPayload());
-      if (response.success) {
-        setPlants({ ...plants, ...response.data });
-        setForm(initialForm);
-        setImageFiles([]);
-        setSubcategories([]);
-        setFilteredSubcategories([]);
-        if (imageInputRef.current) {
-          imageInputRef.current.value = "";
+      if (isEdit && editId) {
+        const changedFields = buildEditPayload();
+
+        if (Object.keys(changedFields).length === 0) {
+          alert("No changes detected");
+          setLoading(false);
+          return;
+        }
+
+        const response = await updatePlant(Number(editId), changedFields);
+        if (response.success) {
+          router.push("/master/plant");
+        }
+      } else {
+        const response = await createPlant(buildPayload());
+        if (response.success) {
+          setPlants({ ...plants, ...response.data });
+          setForm(initialForm);
+          setImageFiles([]);
+          setSubcategories([]);
+          setFilteredSubcategories([]);
+          if (imageInputRef.current) {
+            imageInputRef.current.value = "";
+          }
         }
       }
     } catch (error: any) {
@@ -226,6 +302,10 @@ export default function AddPlantPage() {
       setLoading(false);
     }
   };
+
+  if (pageLoading) {
+    return <TableLoader message="Loading plant data..." />;
+  }
 
   return (
     <div className="mx-auto px-4">
@@ -238,7 +318,7 @@ export default function AddPlantPage() {
         <div className="absolute left-0 right-0 top-0 h-1.5 rounded-t-2xl bg-gradient-to-r from-brand-500 via-brand-400 to-brand-300" />
         <div className="absolute inset-0 bg-gradient-to-br from-brand-25/30 via-transparent to-blue-light-25/20" />
 
-        <AddPlantHeader />
+        <AddPlantHeader isEdit={isEdit} />
 
         <CardContent className="relative pt-4">
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -269,6 +349,7 @@ export default function AddPlantPage() {
             <AddPlantSubmitButton
               loading={loading}
               disabled={loading || !form.name || !form.categoryId || !form.subcategoryId}
+              isEdit={isEdit}
             />
           </form>
         </CardContent>
