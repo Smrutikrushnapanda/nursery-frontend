@@ -811,6 +811,30 @@ export const reportApis = {
     }
 }
 
+export const ordersApis = {
+    getAllOrders: async () => {
+        try {
+            const { data } = await api.get("/orders", {
+                withCredentials: true
+            });
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    },
+
+    getOrderById: async (id: number) => {
+        try {
+            const { data } = await api.get(`/orders/${id}`, {
+                withCredentials: true
+            });
+            return data;
+        } catch (error) {
+            throw getApiError(error);
+        }
+    }
+}
+
 export const subscriptionApis = {
     getActiveSubscription: async () => {
         try {
