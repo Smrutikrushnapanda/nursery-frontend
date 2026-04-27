@@ -18,39 +18,43 @@ import { useAppStore } from "@/utils/store/store";
 import { Crown, ArrowUpCircle } from "lucide-react";
 
 type NavItem = {
+  id?: number | string;
   name: string;
   icon: React.ReactNode;
   path?: string;
-  subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
+  subItems?: { id?: number | string; name: string; path: string; pro?: boolean; new?: boolean }[];
 };
 
 const othersItems: NavItem[] = [
   {
+    id: "charts",
     icon: <PieChartIcon />,
     name: "Charts",
     subItems: [
-      { name: "Line Chart", path: "/line-chart", pro: false },
-      { name: "Bar Chart", path: "/bar-chart", pro: false },
+      { id: "line-chart", name: "Line Chart", path: "/line-chart", pro: false },
+      { id: "bar-chart", name: "Bar Chart", path: "/bar-chart", pro: false },
     ],
   },
   {
+    id: "ui-elements",
     icon: <BoxCubeIcon />,
     name: "UI Elements",
     subItems: [
-      { name: "Alerts", path: "/alerts", pro: false },
-      { name: "Avatar", path: "/avatars", pro: false },
-      { name: "Badge", path: "/badge", pro: false },
-      { name: "Buttons", path: "/buttons", pro: false },
-      { name: "Images", path: "/images", pro: false },
-      { name: "Videos", path: "/videos", pro: false },
+      { id: "alerts", name: "Alerts", path: "/alerts", pro: false },
+      { id: "avatars", name: "Avatar", path: "/avatars", pro: false },
+      { id: "badge", name: "Badge", path: "/badge", pro: false },
+      { id: "buttons", name: "Buttons", path: "/buttons", pro: false },
+      { id: "images", name: "Images", path: "/images", pro: false },
+      { id: "videos", name: "Videos", path: "/videos", pro: false },
     ],
   },
   {
+    id: "auth",
     icon: <PlugInIcon />,
     name: "Authentication",
     subItems: [
-      { name: "Sign In", path: "/signin", pro: false },
-      { name: "Sign Up", path: "/signup", pro: false },
+      { id: "signin", name: "Sign In", path: "/signin", pro: false },
+      { id: "signup", name: "Sign Up", path: "/signup", pro: false },
     ],
   },
 ];
@@ -112,16 +116,26 @@ const AppSidebar: React.FC = () => {
   const navItems: NavItem[] = React.useMemo(() => {
     if (!menuData || !Array.isArray(menuData)) return [];
 
-    const parents = menuData
+    // Deduplicate menuData by ID just in case the API returns duplicates or store has duplicates
+    const uniqueMenuMap = new Map();
+    menuData.forEach((item: any) => {
+      if (item && item.id) {
+        uniqueMenuMap.set(item.id, item);
+      }
+    });
+    const uniqueMenuData = Array.from(uniqueMenuMap.values());
+
+    const parents = uniqueMenuData
       .filter((item: any) => item.parentId === null)
       .sort((a: any, b: any) => a.displayOrder - b.displayOrder);
 
     return parents.map((parent: any) => {
-      const children = menuData
+      const children = uniqueMenuData
         .filter((item: any) => item.parentId === parent.id)
         .sort((a: any, b: any) => a.displayOrder - b.displayOrder);
 
       const navItem: NavItem = {
+        id: parent.id,
         name: parent.menuName,
         icon: getIconForMenu(parent.menuName),
         path: parent.path,
@@ -129,6 +143,7 @@ const AppSidebar: React.FC = () => {
 
       if (children.length > 0) {
         navItem.subItems = children.map((child: any) => ({
+          id: child.id,
           name: child.menuName,
           path: child.path,
           pro: false,
@@ -142,7 +157,7 @@ const AppSidebar: React.FC = () => {
   const renderMenuItems = (navItems: NavItem[], menuType: "main" | "others") => (
     <ul className="flex flex-col gap-1">
       {navItems.map((nav, index) => (
-        <li key={nav.name}>
+        <li key={nav.id || `${nav.name}-${index}`}>
           {nav.subItems ? (
             <button
               onClick={() => handleSubmenuToggle(index, menuType)}
@@ -214,8 +229,8 @@ const AppSidebar: React.FC = () => {
               }}
             >
               <ul className="ml-9 mt-1 space-y-0.5 border-l-2 border-brand-200/50 pl-3">
-                {nav.subItems.map((subItem) => (
-                  <li key={subItem.name}>
+                {nav.subItems.map((subItem, subIndex) => (
+                  <li key={subItem.id || `${subItem.name}-${subIndex}`}>
                     <Link
                       href={subItem.path}
                       className={`group relative flex items-center rounded-lg px-3 py-2 text-sm transition-all ${isActive(subItem.path)
