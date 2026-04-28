@@ -47,17 +47,17 @@ export default function InventoryPage() {
 
   const filterFields: FilterField[] = useMemo(() => [
     {
-      id: "category",
+      id: "categoryId",
       label: "Category",
       type: "select",
-      options: categories.map(c => ({ value: c.name, label: c.name })),
+      options: categories.map(c => ({ value: c.id.toString(), label: c.name })),
       placeholder: "All Categories"
     },
     {
-      id: "subcategory",
+      id: "subcategoryId",
       label: "Sub Category",
       type: "select",
-      options: subCategories.map(s => ({ value: s.name, label: s.name })),
+      options: subCategories.map(s => ({ value: s.id.toString(), label: s.name })),
       placeholder: "All Sub Categories"
     },
     {
@@ -87,28 +87,13 @@ export default function InventoryPage() {
   ], [categories, subCategories]);
 
   const filteredStocks = useMemo(() => {
-    return (stocks ?? []).filter(stock => {
-      const plant = (stock.variant?.plant as any) ?? {};
-      const plantName = plant.name ?? "";
-      const categoryName = plant.category?.name ?? "";
-      const subCategoryName = plant.subcategory?.name ?? "";
-      const variantSize = stock.variant?.size ?? "";
-      const status = getStockStatus(stock);
+    return stocks ?? [];
+  }, [stocks]);
 
-      const categoryMatch = !filters.category || categoryName === filters.category;
-      const subCategoryMatch = !filters.subcategory || subCategoryName === filters.subcategory;
-      const plantMatch = !filters.plant || plantName.toLowerCase().includes(filters.plant.toLowerCase());
-      const variantMatch = !filters.variant || variantSize === filters.variant;
-      const statusMatch = !filters.status || status === filters.status;
-
-      return categoryMatch && subCategoryMatch && plantMatch && variantMatch && statusMatch;
-    });
-  }, [stocks, filters]);
-
-  const getStocks = useCallback(async () => {
+  const getStocks = useCallback(async (filters?: { categoryId?: number; subcategoryId?: number }) => {
     setIsPageLoading(true);
     try {
-      const response = await getAllStocks();
+      const response = await getAllStocks(filters);
 
       if (response.success) {
         setStocks(response.data);
@@ -270,11 +255,16 @@ export default function InventoryPage() {
   );
 
   const handleFilter = useCallback((vals: Record<string, any>) => {
-    setFilters(vals);
+    const filters: any = {};
+    if (vals.categoryId) filters.categoryId = Number(vals.categoryId);
+    if (vals.subcategoryId) filters.subcategoryId = Number(vals.subcategoryId);
+    
+    void getStocks(filters);
+
     setPagination((prev) => (
       prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
     ));
-  }, []);
+  }, [getStocks]);
 
   const handleDownloadExcel = async () => {
     const { utils, writeFile } = await import('xlsx');
@@ -296,13 +286,13 @@ export default function InventoryPage() {
     writeFile(workbook, `inventory_master_${new Date().getTime()}.xlsx`);
   };
 
-  if (isPageLoading) return <TableLoader message="Loading Inventory..." />;
-
   return (
     <div className="p-6 space-y-4">
       <div className="w-full flex justify-between items-center">
-        <h1 className="text-xl font-semibold">Inventory</h1>
-        <Button className="bg-primary text-white p-2 rounded" onClick={handleAddOpen}>
+        <h1 className="text-xl font-semibold flex items-center gap-2 text-gray-800">
+          Inventory
+        </h1>
+        <Button className="bg-brand-500 hover:bg-brand-600 text-white rounded-xl shadow-md transition-all active:scale-95" onClick={handleAddOpen}>
           + Add Stock
         </Button>
       </div>
@@ -313,13 +303,17 @@ export default function InventoryPage() {
         title="Stock Filters"
       />
 
-      <DataTable
-        columns={columns}
-        data={filteredStocks ?? []}
-        pagination={pagination}
-        onPaginationChange={setPagination}
-        onDownloadAll={handleDownloadExcel}
-      />
+      {isPageLoading ? (
+        <TableLoader message="Loading Inventory..." />
+      ) : (
+        <DataTable
+          columns={columns}
+          data={filteredStocks ?? []}
+          pagination={pagination}
+          onPaginationChange={setPagination}
+          onDownloadAll={handleDownloadExcel}
+        />
+      )}
 
       {dialogMode ? (
         <StockFormDialog

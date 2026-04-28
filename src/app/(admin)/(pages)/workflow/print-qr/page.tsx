@@ -38,6 +38,7 @@ export default function PrintQrPage() {
   const [bulkQrForm, setBulkQrForm] = useState<BulkQrFormState>(initialBulkQrForm);
   const [hasGeneratedBulk, setHasGeneratedBulk] = useState(false);
   const [newlyGeneratedIds, setNewlyGeneratedIds] = useState<number[]>([]);
+  const [bulkResultData, setBulkResultData] = useState<any>(null);
 
   const { generateInBulk } = qrApis;
 
@@ -182,12 +183,16 @@ export default function PrintQrPage() {
 
   const openBulkDialog = () => {
     setBulkQrForm(initialBulkQrForm);
+    setBulkResultData(null);
+    setHasGeneratedBulk(false);
     setIsBulkDialogOpen(true);
   };
 
   const closeBulkDialog = () => {
     setIsBulkDialogOpen(false);
     setBulkQrForm(initialBulkQrForm);
+    setBulkResultData(null);
+    setHasGeneratedBulk(false);
   };
 
   const handleBulkCategoryChange = (categoryId: string) => {
@@ -217,16 +222,21 @@ export default function PrintQrPage() {
         };
       }
 
-      if (prev.plantIds.length >= 3) {
-        alert("You can select a maximum of 3 plants.");
-        return prev;
-      }
-
       return {
         ...prev,
         plantIds: [...prev.plantIds, plantId],
       };
     });
+  };
+
+  const handleSelectAllPlants = () => {
+    const allIds = bulkPlantOptions.map(p => p.id);
+    const areAllSelected = allIds.every(id => bulkQrForm.plantIds.includes(id));
+
+    setBulkQrForm(prev => ({
+      ...prev,
+      plantIds: areAllSelected ? [] : allIds
+    }));
   };
 
   const handleGenerateBulk = async () => {
@@ -247,6 +257,8 @@ export default function PrintQrPage() {
         Number(bulkQrForm.subcategoryId),
         bulkQrForm.plantIds
       );
+      
+      setBulkResultData(response.data);
       setHasGeneratedBulk(true);
 
       const generatedItems = Array.isArray(response?.data?.generated)
@@ -281,17 +293,76 @@ export default function PrintQrPage() {
 
       const summary = response?.data?.summary;
       const generatedCount = Number(summary?.generated ?? generatedItems.length ?? 0);
-      const skippedCount = Number(summary?.skipped ?? 0);
-
-      alert(
-        response?.message ||
-        `Bulk QR generation completed. Generated: ${generatedCount}, Skipped: ${skippedCount}.`
-      );
-      closeBulkDialog();
+      
+      if (generatedCount === 0) {
+        // No need for alert if we show it in the UI
+      }
     } catch (error: any) {
       alert(error?.message || "Failed to generate bulk QR codes.");
     } finally {
       setIsBulkGenerating(false);
+    }
+  };
+
+  const handleBulkDownloadPdf = async (generatedItems: any[]) => {
+    try {
+      const { jsPDF } = await import("jspdf");
+      const doc = new jsPDF();
+      
+      if (generatedItems.length === 0) {
+        alert("No generated QR codes found to download.");
+        return;
+      }
+
+      let x = 15;
+      let y = 15;
+      const qrSize = 40;
+      const margin = 15;
+      const rowSpacing = 25;
+      const itemsPerRow = 3;
+      const rowsPerPage = 4;
+      const itemsPerPage = itemsPerRow * rowsPerPage;
+
+      generatedItems.forEach((item, index) => {
+        if (index > 0 && index % itemsPerPage === 0) {
+          doc.addPage();
+          x = 15;
+          y = 15;
+        }
+
+        const imgData = item.qrImageBase64;
+        if (!imgData) return;
+
+        doc.addImage(imgData, "PNG", x, y, qrSize, qrSize);
+        
+        const centerX = x + (qrSize / 2);
+        const textY = y + qrSize + 5;
+        
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "bold");
+        doc.text(item.plantName || "Unknown", centerX, textY, { align: "center" });
+        
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.text(`Size: ${item.size || "N/A"}`, centerX, textY + 5, { align: "center" });
+        
+        doc.setFontSize(7);
+        doc.setTextColor(100, 100, 100);
+        doc.text(`P-ID: ${item.plantId} | V-ID: ${item.variantId}`, centerX, textY + 9, { align: "center" });
+        doc.setTextColor(0, 0, 0);
+
+        if ((index + 1) % itemsPerRow === 0) {
+          x = 15;
+          y += qrSize + rowSpacing;
+        } else {
+          x += qrSize + margin + 10;
+        }
+      });
+
+      doc.save(`bulk-qr-codes-${new Date().getTime()}.pdf`);
+    } catch (err) {
+      console.error("PDF generation failed:", err);
+      alert("Failed to generate PDF. Please try again.");
     }
   };
 
@@ -455,113 +526,165 @@ export default function PrintQrPage() {
         isOpen={isBulkDialogOpen}
         onClose={closeBulkDialog}
         title="Generate Bulk QR Codes"
-        description="Select a category, a sub-category, and up to 3 plants to generate QR codes in bulk."
+        description={bulkResultData ? "QR generation summary" : "Select a category, a sub-category, and the plants to generate QR codes in bulk."}
         className="mx-4 max-w-3xl p-6 sm:p-8"
       >
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Category</label>
-              <select
-                value={bulkQrForm.categoryId}
-                onChange={(event) => handleBulkCategoryChange(event.target.value)}
-                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 outline-none transition-all focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
-              >
-                <option value="">Select category</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Sub-category</label>
-              <select
-                value={bulkQrForm.subcategoryId}
-                onChange={(event) => handleBulkSubCategoryChange(event.target.value)}
-                disabled={!bulkQrForm.categoryId}
-                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 outline-none transition-all focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 disabled:cursor-not-allowed disabled:bg-gray-50"
-              >
-                <option value="">Select sub-category</option>
-                {bulkSubCategoryOptions.map((subCategory) => (
-                  <option key={subCategory.id} value={subCategory.id}>
-                    {subCategory.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-semibold text-gray-800">Plants</h3>
-                <p className="text-xs text-gray-500">Select up to 3 plants.</p>
+        {bulkResultData ? (
+          <div className="space-y-6">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="rounded-xl bg-brand-50 p-4 text-center">
+                <p className="text-sm text-brand-600">Total</p>
+                <p className="text-2xl font-bold text-brand-900">{bulkResultData.summary?.total || 0}</p>
               </div>
-              <span className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-700">
-                {bulkQrForm.plantIds.length}/3 selected
-              </span>
+              <div className="rounded-xl bg-green-50 p-4 text-center">
+                <p className="text-sm text-green-600">Generated</p>
+                <p className="text-2xl font-bold text-green-900">{bulkResultData.summary?.generated || 0}</p>
+              </div>
+              <div className="rounded-xl bg-yellow-50 p-4 text-center">
+                <p className="text-sm text-yellow-600">Skipped</p>
+                <p className="text-2xl font-bold text-yellow-900">{bulkResultData.summary?.skipped || 0}</p>
+              </div>
             </div>
 
-            <div className="max-h-72 space-y-2 overflow-y-auto rounded-2xl border border-gray-200 bg-gray-50/50 p-3">
-              {bulkPlantOptions.length > 0 ? (
-                bulkPlantOptions.map((plant) => {
-                  const isSelected = bulkQrForm.plantIds.includes(plant.id);
-                  const isDisabled = !isSelected && bulkQrForm.plantIds.length >= 3;
+            {bulkResultData.summary?.generated === 0 && (
+              <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-700">
+                All selected plant QR codes were already generated.
+              </div>
+            )}
 
-                  return (
-                    <label
-                      key={plant.id}
-                      className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-3 transition-all ${isSelected
-                          ? "border-brand-500 bg-brand-50"
-                          : "border-gray-200 bg-white"
-                        } ${isDisabled ? "cursor-not-allowed opacity-60" : "hover:border-brand-300"}`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        disabled={isDisabled}
-                        onChange={() => handleBulkPlantToggle(plant.id)}
-                        className="mt-1 h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
-                      />
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-gray-800">{plant.name}</p>
-                        {plant.scientificName ? (
-                          <p className="text-xs italic text-gray-500">{plant.scientificName}</p>
-                        ) : null}
-                      </div>
-                    </label>
-                  );
-                })
-              ) : (
-                <div className="rounded-xl border border-dashed border-gray-200 bg-white px-4 py-8 text-center text-sm text-gray-500">
-                  Select a category and sub-category to view available plants.
-                </div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <Button type="button" variant="outline" className="rounded-xl" onClick={closeBulkDialog}>
+                Close
+              </Button>
+              {bulkResultData.summary?.generated > 0 && (
+                <Button
+                  type="button"
+                  className="rounded-xl flex items-center gap-2"
+                  onClick={() => handleBulkDownloadPdf(bulkResultData.generated)}
+                >
+                  <Download className="h-4 w-4" />
+                  Download Generated PDF
+                </Button>
               )}
             </div>
           </div>
+        ) : (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Category</label>
+                <select
+                  value={bulkQrForm.categoryId}
+                  onChange={(event) => handleBulkCategoryChange(event.target.value)}
+                  className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 outline-none transition-all focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+                >
+                  <option value="">Select category</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-            <Button type="button" variant="outline" className="rounded-xl" onClick={closeBulkDialog}>
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              className="rounded-xl"
-              onClick={handleGenerateBulk}
-              disabled={
-                isBulkGenerating ||
-                !bulkQrForm.categoryId ||
-                !bulkQrForm.subcategoryId ||
-                bulkQrForm.plantIds.length === 0
-              }
-            >
-              {isBulkGenerating ? "Generating..." : "Generate Bulk QR"}
-            </Button>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Sub-category</label>
+                <select
+                  value={bulkQrForm.subcategoryId}
+                  onChange={(event) => handleBulkSubCategoryChange(event.target.value)}
+                  disabled={!bulkQrForm.categoryId}
+                  className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 outline-none transition-all focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 disabled:cursor-not-allowed disabled:bg-gray-50"
+                >
+                  <option value="">Select sub-category</option>
+                  {bulkSubCategoryOptions.map((subCategory) => (
+                    <option key={subCategory.id} value={subCategory.id}>
+                      {subCategory.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-800">Plants</h3>
+                  <p className="text-xs text-gray-500">Select plants to generate QRs for.</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  {bulkPlantOptions.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleSelectAllPlants}
+                      className="text-[11px] font-medium text-brand-600 hover:text-brand-700 underline underline-offset-2"
+                    >
+                      {bulkPlantOptions.every(p => bulkQrForm.plantIds.includes(p.id)) ? "Deselect All" : "Select All"}
+                    </button>
+                  )}
+                  <span className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-700">
+                    {bulkQrForm.plantIds.length} selected
+                  </span>
+                </div>
+              </div>
+
+              <div className="max-h-72 space-y-2 overflow-y-auto rounded-2xl border border-gray-200 bg-gray-50/50 p-3">
+                {bulkPlantOptions.length > 0 ? (
+                  bulkPlantOptions.map((plant) => {
+                    const isSelected = bulkQrForm.plantIds.includes(plant.id);
+                    const isDisabled = !isSelected && bulkQrForm.plantIds.length >= 3;
+
+                    return (
+                      <label
+                        key={plant.id}
+                        className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-3 transition-all ${isSelected
+                            ? "border-brand-500 bg-brand-50"
+                            : "border-gray-200 bg-white"
+                          } hover:border-brand-300`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          disabled={isDisabled}
+                          onChange={() => handleBulkPlantToggle(plant.id)}
+                          className="mt-1 h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+                        />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-gray-800">{plant.name}</p>
+                          {plant.scientificName ? (
+                            <p className="text-xs italic text-gray-500">{plant.scientificName}</p>
+                          ) : null}
+                        </div>
+                      </label>
+                    );
+                  })
+                ) : (
+                  <div className="rounded-xl border border-dashed border-gray-200 bg-white px-4 py-8 text-center text-sm text-gray-500">
+                    Select a category and sub-category to view available plants.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <Button type="button" variant="outline" className="rounded-xl" onClick={closeBulkDialog}>
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                className="rounded-xl"
+                onClick={handleGenerateBulk}
+                disabled={
+                  isBulkGenerating ||
+                  !bulkQrForm.categoryId ||
+                  !bulkQrForm.subcategoryId ||
+                  bulkQrForm.plantIds.length === 0
+                }
+              >
+                {isBulkGenerating ? "Generating..." : "Generate Bulk QR"}
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </DashboardDialog>
     </div>
   );

@@ -1,5 +1,4 @@
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { basicFields } from "@/app/(admin)/(pages)/master/plant/add-plant/config";
 import { PlantFormState } from "@/app/(admin)/(pages)/master/plant/add-plant/types";
 import {
@@ -9,28 +8,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { FormField } from "@/components/common/FormField";
 
 type Props = {
   form: PlantFormState;
+  errors?: Record<string, string>;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSelectChange: (name: keyof PlantFormState, value: string) => void;
 };
 
-export function PlantTextFields({ form, onChange, onSelectChange }: Props) {
+export function PlantTextFields({ form, errors = {}, onChange, onSelectChange }: Props) {
   return (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
       {basicFields.map((field) => (
-        <div key={field.name} className="space-y-2">
-          <Label htmlFor={field.name} className="text-sm font-medium text-gray-700">
-            {field.label}
-            {field.required && <span className="text-red-500"> *</span>}
-          </Label>
+        <FormField 
+          key={field.name} 
+          label={field.label} 
+          error={errors[field.name]} 
+          required={field.required}
+        >
           {field.type === "select" ? (
             <Select
               value={form[field.name] as string}
               onValueChange={(value) => onSelectChange(field.name, value)}
             >
-              <SelectTrigger className="h-11 w-full rounded-xl border-2 border-brand-200 bg-white px-4 transition-all focus:border-brand-400 focus:ring-4 focus:ring-brand-500/20">
+              <SelectTrigger className={`h-11 w-full rounded-xl border-2 bg-white px-4 transition-all focus:border-brand-400 focus:ring-4 focus:ring-brand-500/20 ${errors[field.name] ? "border-red-500" : "border-brand-200"}`}>
                 <SelectValue placeholder={field.placeholder} />
               </SelectTrigger>
               <SelectContent>
@@ -49,11 +51,10 @@ export function PlantTextFields({ form, onChange, onSelectChange }: Props) {
               placeholder={field.placeholder}
               value={form[field.name]}
               onChange={onChange}
-              required={field.required}
-              className="h-11 rounded-xl border-2 border-brand-200 bg-white transition-all focus:border-brand-400 focus:ring-4 focus:ring-brand-500/20"
+              className={`h-11 rounded-xl border-2 bg-white transition-all focus:border-brand-400 focus:ring-4 focus:ring-brand-500/20 ${errors[field.name] ? "border-red-500" : "border-brand-200"}`}
             />
           )}
-        </div>
+        </FormField>
       ))}
     </div>
   );

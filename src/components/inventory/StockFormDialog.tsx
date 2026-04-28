@@ -2,8 +2,9 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { DashboardDialog } from "@/components/common/DashboardDialog";
+import { FormField } from "@/components/common/FormField";
+import { useState } from "react";
 
 export type StockVariantOption = {
   id: number;
@@ -41,6 +42,26 @@ export function StockFormDialog({
   onSubmit,
 }: Props) {
   const isEdit = mode === "edit";
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validate = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const newErrors: Record<string, string> = {};
+
+    if (!form.variantId) newErrors.variantId = "Please select a variant";
+    if (!form.quantity || Number(form.quantity) < 0) {
+      newErrors.quantity = "Enter a valid quantity";
+    }
+    
+    if (isEdit) {
+      if (!form.reason.trim()) newErrors.reason = "Reason is required for update";
+    }
+
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length === 0) {
+      onSubmit(e);
+    }
+  };
 
   return (
     <DashboardDialog
@@ -53,18 +74,18 @@ export function StockFormDialog({
           : "Add stock against a plant variant."
       }
     >
-      <form onSubmit={onSubmit} className="space-y-5">
-        <div className="space-y-2">
-          <Label htmlFor="variantId">
-            Variant <span className="text-red-500">*</span>
-          </Label>
+      <form onSubmit={validate} className="space-y-5">
+        <FormField label="Variant" error={errors.variantId} required>
           <select
             id="variantId"
             name="variantId"
             value={form.variantId}
-            onChange={(e) => onVariantChange(e.target.value)}
+            onChange={(e) => {
+              onVariantChange(e.target.value);
+              if (errors.variantId) setErrors(prev => ({ ...prev, variantId: "" }));
+            }}
             disabled={isEdit}
-            className="w-full rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:bg-gray-100"
+            className={`w-full rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:bg-gray-100 ${errors.variantId ? "border-red-500" : ""}`}
           >
             <option value="">Select variant</option>
             {variantOptions.map((variant) => (
@@ -73,55 +94,52 @@ export function StockFormDialog({
               </option>
             ))}
           </select>
-        </div>
+        </FormField>
 
-        <div className="space-y-2">
-          <Label htmlFor="quantity">
-            Quantity <span className="text-red-500">*</span>
-          </Label>
+        <FormField label="Quantity" error={errors.quantity} required>
           <Input
             id="quantity"
             name="quantity"
             type="number"
             min="0"
             value={form.quantity}
-            onChange={onInputChange}
+            onChange={(e) => {
+              onInputChange(e);
+              if (errors.quantity) setErrors(prev => ({ ...prev, quantity: "" }));
+            }}
             placeholder={isEdit ? "e.g., 50" : "e.g., 10"}
-            required
-            className="rounded-xl"
+            className={`rounded-xl ${errors.quantity ? "border-red-500" : ""}`}
           />
-        </div>
+        </FormField>
 
         {isEdit ? (
-          <div className="space-y-2">
-            <Label htmlFor="reason">
-              Reason <span className="text-red-500">*</span>
-            </Label>
+          <FormField label="Reason" error={errors.reason} required>
             <Input
               id="reason"
               name="reason"
               value={form.reason}
-              onChange={onInputChange}
+              onChange={(e) => {
+                onInputChange(e);
+                if (errors.reason) setErrors(prev => ({ ...prev, reason: "" }));
+              }}
               placeholder="e.g., Inventory adjustment"
-              required
-              className="rounded-xl"
+              className={`rounded-xl ${errors.reason ? "border-red-500" : ""}`}
             />
-          </div>
+          </FormField>
         ) : (
-          <div className="space-y-2">
-            <Label htmlFor="reference">
-              Reference <span className="text-red-500">*</span>
-            </Label>
+          <FormField label="Reference" error={errors.reference}>
             <Input
               id="reference"
               name="reference"
               value={form.reference}
-              onChange={onInputChange}
-              placeholder="e.g., ORDER-2026-0001"
-              required
-              className="rounded-xl"
+              onChange={(e) => {
+                onInputChange(e);
+                if (errors.reference) setErrors(prev => ({ ...prev, reference: "" }));
+              }}
+              placeholder="e.g., ORDER-2026-0001 (optional)"
+              className={`rounded-xl ${errors.reference ? "border-red-500" : ""}`}
             />
-          </div>
+          </FormField>
         )}
 
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
@@ -130,13 +148,8 @@ export function StockFormDialog({
           </Button>
           <Button
             type="submit"
-            disabled={
-              saving ||
-              !form.variantId ||
-              !form.quantity ||
-              (isEdit ? !form.reason.trim() : !form.reference.trim())
-            }
-            className="rounded-xl"
+            disabled={saving}
+            className="rounded-xl bg-brand-500 hover:bg-brand-600 text-white"
           >
             {saving ? (isEdit ? "Updating..." : "Adding...") : isEdit ? "Update Stock" : "Add Stock"}
           </Button>

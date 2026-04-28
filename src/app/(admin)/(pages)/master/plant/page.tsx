@@ -29,12 +29,12 @@ export default function Page() {
   const [deletingPlant, setDeletingPlant] = useState<PlantMasterRow | null>(null);
   const router = useRouter();
 
-  const fetchPlants = async () => {
+  const fetchPlants = async (filters?: { categoryId?: number; subcategoryId?: number }) => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await masterApis.getAllPlants();
+      const response = await masterApis.getAllPlants(filters);
       const rawPlants = Array.isArray(response?.data) ? response.data : [];
       const mappedPlants = mapPlantsToMasterRows(rawPlants as PlantMasterApiItem[]);
       setPlants(mappedPlants);
@@ -87,21 +87,21 @@ export default function Page() {
 
   const filterFields: FilterField[] = useMemo(() => [
     {
-      id: "category",
+      id: "categoryId",
       label: "Category",
       type: "select",
       options: (Array.isArray(categories) ? categories : []).map((c) => ({ 
-        value: c?.name || "", 
+        value: c?.id?.toString() || "", 
         label: c?.name || "Unknown" 
       })),
       placeholder: "All Categories",
     },
     {
-      id: "subcategory",
+      id: "subcategoryId",
       label: "Subcategory",
       type: "select",
       options: (Array.isArray(subCategories) ? subCategories : []).map((s) => ({ 
-        value: s?.name || "", 
+        value: s?.id?.toString() || "", 
         label: s?.name || "Unknown" 
       })),
       placeholder: "All Subcategories",
@@ -115,37 +115,23 @@ export default function Page() {
   ], [categories, subCategories]);
 
   const handleFilter = useCallback((values: Record<string, any>) => {
-    let filtered = [...plants];
+    const filters: any = {};
+    if (values.categoryId) filters.categoryId = Number(values.categoryId);
+    if (values.subcategoryId) filters.subcategoryId = Number(values.subcategoryId);
 
-    if (values.category) {
-      filtered = filtered.filter((p) => p.category === values.category);
-    }
+    void fetchPlants(filters);
 
-    if (values.subcategory) {
-      filtered = filtered.filter((p) => p.subcategory === values.subcategory);
-    }
-
-    if (values.search) {
-      const searchTerm = values.search.toLowerCase();
-      filtered = filtered.filter(
-        (p) =>
-          p.name.toLowerCase().includes(searchTerm) ||
-          p.sku.toLowerCase().includes(searchTerm)
-      );
-    }
-
-    setFilteredPlants(filtered);
     setPagination((prev) => (
       prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
     ));
-  }, [plants]);
+  }, []);
 
   const handleReset = useCallback(() => {
-    setFilteredPlants(plants);
+    void fetchPlants();
     setPagination((prev) => (
       prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
     ));
-  }, [plants]);
+  }, []);
 
   const handleDelete = useCallback(async (plant: PlantMasterRow) => {
     setDeleting(true);
@@ -206,7 +192,7 @@ export default function Page() {
       <Filter fields={filterFields} onFilter={handleFilter} onReset={handleReset} />
 
       {error ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 mt-4">
           {error}
         </div>
       ) : loading ? (

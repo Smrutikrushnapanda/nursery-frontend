@@ -2,10 +2,10 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { DashboardDialog } from "@/components/common/DashboardDialog";
 import { useState, useEffect } from "react";
 import { InventoryItem } from "@/components/tables/inventoryColumns";
+import { FormField } from "@/components/common/FormField";
 
 type Props = {
   isOpen: boolean;
@@ -24,23 +24,48 @@ export function DeadStockDialog({
 }: Props) {
   const [quantity, setQuantity] = useState("");
   const [reason, setReason] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (isOpen) {
       setQuantity("");
       setReason("");
+      setErrors({});
     }
   }, [isOpen]);
+
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    const qtyNum = Number(quantity);
+    const available = stockItem?.quantity ?? 0;
+
+    if (!quantity) {
+      newErrors.quantity = "Quantity is required";
+    } else if (qtyNum <= 0) {
+      newErrors.quantity = "Quantity must be greater than 0";
+    } else if (qtyNum > available) {
+      newErrors.quantity = `Only ${available} units available`;
+    }
+
+    if (!reason.trim()) {
+      newErrors.reason = "Please provide a reason";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!stockItem) return;
 
-    onSubmit({
-      variantId: stockItem.variantId,
-      quantity: Number(quantity),
-      reason: reason.trim(),
-    });
+    if (validate()) {
+      onSubmit({
+        variantId: stockItem.variantId,
+        quantity: Number(quantity),
+        reason: reason.trim(),
+      });
+    }
   };
 
   return (
@@ -51,36 +76,32 @@ export function DeadStockDialog({
       description={`Mark some or all stock of "${stockItem?.variant?.plant?.name ?? "this item"}" as dead.`}
     >
       <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="space-y-2">
-          <Label htmlFor="deadQuantity">
-            Quantity to mark as dead <span className="text-red-500">*</span>
-          </Label>
+        <FormField label="Quantity to mark as dead" error={errors.quantity} required>
           <Input
             id="deadQuantity"
             type="number"
-            min="1"
-            max={stockItem?.quantity}
             value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
+            onChange={(e) => {
+              setQuantity(e.target.value);
+              if (errors.quantity) setErrors(prev => ({ ...prev, quantity: "" }));
+            }}
             placeholder={`Available: ${stockItem?.quantity ?? 0}`}
-            required
-            className="rounded-xl"
+            className={`rounded-xl ${errors.quantity ? "border-red-500" : ""}`}
           />
-        </div>
+        </FormField>
 
-        <div className="space-y-2">
-          <Label htmlFor="deadReason">
-            Reason <span className="text-red-500">*</span>
-          </Label>
+        <FormField label="Reason" error={errors.reason} required>
           <Input
             id="deadReason"
             value={reason}
-            onChange={(e) => setReason(e.target.value)}
+            onChange={(e) => {
+              setReason(e.target.value);
+              if (errors.reason) setErrors(prev => ({ ...prev, reason: "" }));
+            }}
             placeholder="e.g., Plant withered, Pest damage"
-            required
-            className="rounded-xl"
+            className={`rounded-xl ${errors.reason ? "border-red-500" : ""}`}
           />
-        </div>
+        </FormField>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
           <Button type="button" variant="outline" className="rounded-xl" onClick={onClose}>
@@ -88,8 +109,8 @@ export function DeadStockDialog({
           </Button>
           <Button
             type="submit"
-            disabled={saving || !quantity || !reason.trim() || Number(quantity) > (stockItem?.quantity ?? 0)}
-            className="rounded-xl bg-orange-600 hover:bg-orange-700 text-white"
+            disabled={saving}
+            className="rounded-xl bg-orange-600 hover:bg-orange-700 text-white shadow-lg shadow-orange-100"
           >
             {saving ? "Marking..." : "Mark as Dead"}
           </Button>

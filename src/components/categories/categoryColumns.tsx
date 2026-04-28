@@ -24,10 +24,6 @@ export function getCategoryColumns({
       size: 50,
     },
     {
-      accessorKey: "id",
-      header: "ID",
-    },
-    {
       accessorKey: "name",
       header: "Category Name",
       cell: ({ row }) => (
