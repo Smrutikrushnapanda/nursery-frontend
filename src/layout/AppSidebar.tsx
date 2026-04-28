@@ -82,7 +82,7 @@ const AppSidebar: React.FC = () => {
   const fetchSubscription = async () => {
     setIsLoadingSubscription(true);
     try {
-      const response = await subscriptionApis.getActiveSubscription();
+      const response = await subscriptionApis.getActiveSubscription(true);
       if (response.success) {
         setSubscription(response.data);
         await fetchMenus(response.data?.id);

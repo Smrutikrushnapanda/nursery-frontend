@@ -45,6 +45,7 @@ export default function AddPlantPage() {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -168,10 +169,32 @@ export default function AddPlantPage() {
     };
   }, [imageFiles]);
 
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    if (!form.name.trim()) newErrors.name = "Plant name is required";
+    if (!form.categoryId) newErrors.categoryId = "Category is required";
+    if (!form.subcategoryId) newErrors.subcategoryId = "Subcategory is required";
+    
+    if (form.temperatureMin && form.temperatureMax) {
+      if (Number(form.temperatureMin) > Number(form.temperatureMax)) {
+        newErrors.temperatureMin = "Min cannot be greater than Max";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors(prev => {
+      const newErr = { ...prev };
+      delete newErr[name];
+      return newErr;
+    });
   };
 
   const handleSelectChange = (
@@ -183,6 +206,11 @@ export default function AddPlantPage() {
       [name]: value,
       ...(name === "categoryId" ? { subcategoryId: "" } : {}),
     }));
+    if (errors[name]) setErrors(prev => {
+      const newErr = { ...prev };
+      delete newErr[name];
+      return newErr;
+    });
   };
 
   const handleTemperatureChange = (
@@ -264,6 +292,7 @@ export default function AddPlantPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!validate()) return;
     setLoading(true);
 
     try {
@@ -320,10 +349,11 @@ export default function AddPlantPage() {
 
         <CardContent className="relative pt-4">
           <form onSubmit={handleSubmit} className="space-y-5">
-            <PlantTextFields form={form} onChange={handleInputChange} onSelectChange={handleSelectChange} />
+            <PlantTextFields form={form} errors={errors} onChange={handleInputChange} onSelectChange={handleSelectChange} />
             <TemperatureRangeFields
               temperatureMin={form.temperatureMin}
               temperatureMax={form.temperatureMax}
+              errors={errors}
               onChange={handleTemperatureChange}
             />
             <CategoryFields
@@ -332,6 +362,7 @@ export default function AddPlantPage() {
               categories={categories}
               subcategories={filteredSubcategories}
               loading={loading}
+              errors={errors}
               onSelectChange={handleSelectChange}
             />
             <PlantTextareas form={form} onChange={handleInputChange} />

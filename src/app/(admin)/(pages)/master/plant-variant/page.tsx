@@ -41,10 +41,11 @@ export default function Page() {
 
   const filterFields: FilterField[] = useMemo(() => [
     {
-      id: "plant",
-      label: "Plant Name",
-      type: "text",
-      placeholder: "Search by plant..."
+      id: "plantId",
+      label: "Plant",
+      type: "select",
+      options: plants.map(p => ({ value: p.id.toString(), label: p.name })),
+      placeholder: "All Plants"
     },
     {
       id: "size",
@@ -54,45 +55,47 @@ export default function Page() {
       placeholder: "All Sizes"
     },
     {
-      id: "stockStatus",
-      label: "Stock Status",
+      id: "status",
+      label: "Status",
       type: "select",
       options: [
-        { value: "In Stock", label: "In Stock" },
-        { value: "Low Stock", label: "Low Stock" },
-        { value: "Out of Stock", label: "Out of Stock" }
+        { value: "true", label: "Active" },
+        { value: "false", label: "Inactive" }
       ],
       placeholder: "All Status"
     }
-  ], []);
+  ], [plants]);
 
   const filteredVariants = useMemo(() => {
-    return variants.filter(variant => {
-      const plantName = variant.plant?.name ?? "";
-      const size = variant.size;
-      const status = getVariantStatus(variant);
-
-      const plantMatch = !filters.plant || plantName.toLowerCase().includes(filters.plant.toLowerCase());
-      const sizeMatch = !filters.size || size === filters.size;
-      const statusMatch = !filters.stockStatus || status === filters.stockStatus;
-
-      return plantMatch && sizeMatch && statusMatch;
-    });
-  }, [variants, filters]);
+    return variants;
+  }, [variants]);
 
   const handleFilter = useCallback((vals: Record<string, any>) => {
-    setFilters(vals);
+    const filters: any = {};
+    if (vals.plantId) filters.plantId = Number(vals.plantId);
+    if (vals.size) filters.size = vals.size;
+    if (vals.status) filters.status = vals.status === "true";
+
+    void fetchVariants(filters);
+
     setPagination((prev) => (
       prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
     ));
   }, []);
 
-  const fetchVariants = async () => {
+  const handleReset = useCallback(() => {
+    void fetchVariants();
+    setPagination((prev) => (
+      prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
+    ));
+  }, []);
+
+  const fetchVariants = async (filters?: { plantId?: number; size?: string; status?: boolean }) => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await masterApis.getAllPlantVariants();
+      const response = await masterApis.getAllPlantVariants(filters);
       const rawVariants = Array.isArray(response?.data)
         ? response.data
         : Array.isArray(response)
@@ -324,11 +327,12 @@ export default function Page() {
       <Filter 
         fields={filterFields} 
         onFilter={handleFilter} 
+        onReset={handleReset}
         title="Variant Filters"
       />
 
       {error ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 mt-4">
           {error}
         </div>
       ) : loading ? (
@@ -336,7 +340,7 @@ export default function Page() {
       ) : (
         <DataTable
           columns={columns}
-          data={filteredVariants}
+          data={variants}
           defaultPageSize={10}
           pagination={pagination}
           onPaginationChange={setPagination}

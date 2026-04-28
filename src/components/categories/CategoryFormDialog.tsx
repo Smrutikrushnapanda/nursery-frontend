@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { DashboardDialog } from "@/components/common/DashboardDialog";
 import { CategoryForm } from "@/app/(admin)/(pages)/master/category/types";
-
+import { FormField } from "@/components/common/FormField";
+import { useState } from "react";
 
 type Props = {
   isOpen: boolean;
@@ -25,6 +25,21 @@ export function CategoryFormDialog({
   onChange,
   onSubmit,
 }: Props) {
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validate = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const newErrors: Record<string, string> = {};
+    if (!form.name.trim()) {
+      newErrors.name = "Category name is required";
+    }
+    
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length === 0) {
+      onSubmit(e);
+    }
+  };
+
   return (
     <DashboardDialog
       isOpen={isOpen}
@@ -36,24 +51,22 @@ export function CategoryFormDialog({
           : "Create a new category for your nursery master data."
       }
     >
-      <form onSubmit={onSubmit} className="space-y-5">
-        <div className="space-y-2">
-          <Label htmlFor="name">
-            Category Name <span className="text-red-500">*</span>
-          </Label>
+      <form onSubmit={validate} className="space-y-5">
+        <FormField label="Category Name" error={errors.name} required>
           <Input
             id="name"
             name="name"
             value={form.name}
-            onChange={onChange}
+            onChange={(e) => {
+              onChange(e);
+              if (errors.name) setErrors({});
+            }}
             placeholder="e.g., Indoor Plants"
-            required
-            className="rounded-xl"
+            className={`rounded-xl ${errors.name ? "border-red-500" : ""}`}
           />
-        </div>
+        </FormField>
 
-        <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
+        <FormField label="Description">
           <Textarea
             id="description"
             name="description"
@@ -63,7 +76,7 @@ export function CategoryFormDialog({
             rows={4}
             className="rounded-xl"
           />
-        </div>
+        </FormField>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
           <Button type="button" variant="outline" className="rounded-xl" onClick={onClose}>

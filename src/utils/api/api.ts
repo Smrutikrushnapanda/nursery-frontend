@@ -2,6 +2,9 @@ import axios from "axios";
 import { useAppStore } from "@/utils/store/store";
 
 const backend = process.env.NEXT_PUBLIC_BACKEND_URL;
+if (process.env.NODE_ENV === 'development') {
+    console.log("Backend URL:", backend);
+}
 
 export const api = axios.create({
     baseURL: backend,
@@ -34,12 +37,20 @@ api.interceptors.response.use(
 );
 
 const getApiError = (error: any) => {
-    console.error("API Error context:", {
+    const context = {
         message: error?.message,
         status: error?.response?.status,
         data: error?.response?.data,
-        url: error?.config?.url
-    });
+        url: error?.config?.url,
+        method: error?.config?.method
+    };
+
+    console.error("API Error context:", context);
+    
+    // If context is essentially empty, log the raw error too
+    if (!context.message && !context.status && !context.url) {
+        console.error("Raw API Error:", error);
+    }
 
     const responseData = error?.response?.data;
 
@@ -58,7 +69,11 @@ const getApiError = (error: any) => {
         return new Error(responseData);
     }
 
-    return error;
+    if (error?.message) {
+        return new Error(error.message);
+    }
+
+    return error || new Error("An unknown API error occurred");
 };
 
 //Authenticated apis
@@ -254,9 +269,10 @@ export const masterApis = {
     },
 
     //Master apis for plants
-    getAllPlants: async () => {
+    getAllPlants: async (filters?: { categoryId?: number; subcategoryId?: number }) => {
         try {
             const { data } = await api.get("/master/plant", {
+                params: filters,
                 withCredentials: true
             });
 
@@ -321,9 +337,10 @@ export const masterApis = {
     },
 
     //Master api plant variants
-    getAllPlantVariants: async () => {
+    getAllPlantVariants: async (filters?: { plantId?: number; size?: string; status?: boolean }) => {
         try {
             const { data } = await api.get("/master/plant-variant", {
+                params: filters,
                 withCredentials: true
             });
 
@@ -512,15 +529,14 @@ export const masterApis = {
 
 export const inventoryApis = {
 
-    getAllStocks: async () => {
+    getAllStocks: async (filters?: { categoryId?: number; subcategoryId?: number }) => {
         try {
-
             const { data } = await api.get("/inventory", {
+                params: filters,
                 withCredentials: true
             });
 
             return data;
-
         } catch (error) {
             throw getApiError(error);
         }
@@ -853,11 +869,14 @@ export const ordersApis = {
 }
 
 export const subscriptionApis = {
-    getActiveSubscription: async () => {
+    getActiveSubscription: async (showLoader: boolean = false) => {
         try {
+            const headers: any = {};
+            if (showLoader) headers['X-Global-Loader'] = 'true';
+            
             const { data } = await api.get("/subscriptions/me", {
                 withCredentials: true,
-                headers: { 'X-Global-Loader': 'true' }
+                headers
             })
 
             return data;

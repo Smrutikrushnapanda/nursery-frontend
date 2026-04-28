@@ -9,7 +9,7 @@ import { TableLoader } from "@/components/table-loader/table-loader";
 import Badge from "@/components/ui/badge/Badge";
 import { Filter, FilterField } from "@/components/common/Filter";
 import { Button } from "@/components/ui/button";
-import { PaymentFormDialog, PaymentFormState } from "@/components/payment/PaymentFormDialog";
+import { PaymentForm, PaymentFormState } from "@/components/payment/PaymentFormDialog";
 import { CreditCard } from "lucide-react";
 
 const formatDateValue = (date: string) => {
@@ -25,7 +25,7 @@ export default function PaymentsPage() {
   const [payments, setPayments] = useState<PaymentItem[]>([]);
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [viewingPayment, setViewingPayment] = useState<PaymentItem | null>(null);
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [formKey, setFormKey] = useState(0);
   const [saving, setSaving] = useState(false);
   const [filters, setFilters] = useState<Record<string, any>>({});
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
@@ -109,7 +109,7 @@ export default function PaymentsPage() {
       const response = await billingApis.bill(payload);
       if (response.success) {
         await fetchData();
-        setIsFormOpen(false);
+        setFormKey(prev => prev + 1);
       } else {
         alert(response.message || "Failed to process bill");
       }
@@ -170,40 +170,39 @@ export default function PaymentsPage() {
   if (isPageLoading) return <TableLoader message="Loading Payments..." />;
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="p-6 space-y-6">
       <div className="w-full flex justify-between items-center">
         <h1 className="text-xl font-semibold text-gray-800 dark:text-white/90 flex items-center gap-2">
           <CreditCard className="w-6 h-6 text-brand-500" />
           Payments
         </h1>
-        <Button 
-          onClick={() => setIsFormOpen(true)}
-          className="bg-brand-500 hover:bg-brand-600 text-white rounded-xl shadow-md transition-all active:scale-95"
-        >
-          + Manual Bill
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* Action buttons could go here if needed, but Manual Bill is now always visible */}
+        </div>
       </div>
 
-      <Filter
-        fields={filterFields}
-        onFilter={handleFilter}
-        title="Payment Filters"
-      />
-
-      <DataTable
-        columns={columns}
-        data={filteredPayments}
-        pagination={pagination}
-        onPaginationChange={setPagination}
-        onDownloadAll={handleDownloadExcel}
-      />
-
-      <PaymentFormDialog
-        isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
+      <PaymentForm
+        key={formKey}
         onSubmit={handleFormSubmit}
+        onCancel={() => setFormKey(prev => prev + 1)} // Reset on cancel
         saving={saving}
       />
+
+      <div className="space-y-2">
+        <Filter
+          fields={filterFields}
+          onFilter={handleFilter}
+          title="Payment Filters"
+        />
+
+        <DataTable
+          columns={columns}
+          data={filteredPayments}
+          pagination={pagination}
+          onPaginationChange={setPagination}
+          onDownloadAll={handleDownloadExcel}
+        />
+      </div>
 
       <DashboardDialog
         isOpen={Boolean(viewingPayment)}
