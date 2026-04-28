@@ -53,24 +53,24 @@ export default function Page() {
         masterApis.getCategories(),
         masterApis.getSubCategories(),
       ]);
-      
+
       // Categorical data often comes nested in data.data or just data
-      const catData = Array.isArray(catRes?.data?.data) 
-        ? catRes.data.data 
-        : Array.isArray(catRes?.data) 
-          ? catRes.data 
-          : Array.isArray(catRes) 
-            ? catRes 
+      const catData = Array.isArray(catRes?.data?.data)
+        ? catRes.data.data
+        : Array.isArray(catRes?.data)
+          ? catRes.data
+          : Array.isArray(catRes)
+            ? catRes
             : [];
 
-      const subData = Array.isArray(subRes?.data?.data) 
-        ? subRes.data.data 
-        : Array.isArray(subRes?.data) 
-          ? subRes.data 
-          : Array.isArray(subRes) 
-            ? subRes 
+      const subData = Array.isArray(subRes?.data?.data)
+        ? subRes.data.data
+        : Array.isArray(subRes?.data)
+          ? subRes.data
+          : Array.isArray(subRes)
+            ? subRes
             : [];
-      
+
       setCategories(catData);
       setSubCategories(subData);
     } catch (err) {
@@ -90,9 +90,9 @@ export default function Page() {
       id: "categoryId",
       label: "Category",
       type: "select",
-      options: (Array.isArray(categories) ? categories : []).map((c) => ({ 
-        value: c?.id?.toString() || "", 
-        label: c?.name || "Unknown" 
+      options: (Array.isArray(categories) ? categories : []).map((c) => ({
+        value: c?.id?.toString() || "",
+        label: c?.name || "Unknown"
       })),
       placeholder: "All Categories",
     },
@@ -100,9 +100,9 @@ export default function Page() {
       id: "subcategoryId",
       label: "Subcategory",
       type: "select",
-      options: (Array.isArray(subCategories) ? subCategories : []).map((s) => ({ 
-        value: s?.id?.toString() || "", 
-        label: s?.name || "Unknown" 
+      options: (Array.isArray(subCategories) ? subCategories : []).map((s) => ({
+        value: s?.id?.toString() || "",
+        label: s?.name || "Unknown"
       })),
       placeholder: "All Subcategories",
     },
@@ -158,18 +158,18 @@ export default function Page() {
 
   const handleDownloadExcel = async () => {
     const { utils, writeFile } = await import('xlsx');
-    
+
     if (plants.length === 0) return;
 
     const worksheet = utils.json_to_sheet(plants.map(p => ({
-       ID: p.id,
-       Name: p.name,
-       SKU: p.sku,
-       Category: p.category,
-       Subcategory: p.subcategory,
-       Status: p.status ? "Active" : "Inactive"
+      ID: p.id,
+      Name: p.name,
+      SKU: p.sku,
+      Category: p.category,
+      Subcategory: p.subcategory,
+      Status: p.status ? "Active" : "Inactive"
     })));
-    
+
     const workbook = utils.book_new();
     utils.book_append_sheet(workbook, worksheet, "Plants");
     writeFile(workbook, `plants_master_${new Date().getTime()}.xlsx`);
@@ -220,15 +220,11 @@ export default function Page() {
             void handleDelete(deletingPlant);
           }
         }}
-        title="Delete Plant"
-        description={
-          deletingPlant
-            ? `This will delete "${deletingPlant.name}". You can't undo this from the table.`
-            : "This action will delete the selected plant."
-        }
-        confirmLabel="Delete"
+        title="Inactive Plant"
+        description={`Are you sure"?`}
+        confirmLabel="Inactive"
         loading={deleting}
-        loadingLabel="Deleting..."
+        loadingLabel="Inactiving..."
       />
     </div>
   );

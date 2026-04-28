@@ -298,19 +298,19 @@ export default function Page() {
 
   const handleDownloadExcel = async () => {
     const { utils, writeFile } = await import('xlsx');
-    
+
     if (variants.length === 0) return;
 
     const worksheet = utils.json_to_sheet(variants.map(v => ({
-       ID: v.id,
-       Plant: v.plant?.name || "-",
-       Size: v.size,
-       Price: v.price,
-       Stock: v.stockQuantity,
-       MinQty: v.minQuantity,
-       Status: v.status ? "Active" : "Inactive"
+      ID: v.id,
+      Plant: v.plant?.name || "-",
+      Size: v.size,
+      Price: v.price,
+      Stock: v.stockQuantity,
+      MinQty: v.minQuantity,
+      Status: v.status ? "Active" : "Inactive"
     })));
-    
+
     const workbook = utils.book_new();
     utils.book_append_sheet(workbook, worksheet, "Variants");
     writeFile(workbook, `variants_master_${new Date().getTime()}.xlsx`);
@@ -324,9 +324,9 @@ export default function Page() {
         </Button>
       </div>
 
-      <Filter 
-        fields={filterFields} 
-        onFilter={handleFilter} 
+      <Filter
+        fields={filterFields}
+        onFilter={handleFilter}
         onReset={handleReset}
         title="Variant Filters"
       />
@@ -498,15 +498,13 @@ export default function Page() {
             void handleDelete(deletingVariant);
           }
         }}
-        title="Delete Plant Variant"
+        title="Inactive Plant Variant"
         description={
-          deletingVariant
-            ? `This will delete this variant of "${deletingVariant.plant?.name}". You can't undo this from the table.`
-            : "This action will delete the selected plant variant."
+          "Are you sure?"
         }
-        confirmLabel="Delete"
+        confirmLabel="Inactive"
         loading={deleting}
-        loadingLabel="Deleting..."
+        loadingLabel="Inactiving..."
       />
 
       <DashboardDialog
