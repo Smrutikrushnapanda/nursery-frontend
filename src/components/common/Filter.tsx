@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Filter as FilterIcon, RotateCcw, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,21 +40,35 @@ export const Filter: React.FC<FilterProps> = ({
   });
 
   const [isExpanded, setIsExpanded] = useState(true);
+  const onFilterRef = useRef(onFilter);
+  const textFieldIdsRef = useRef<string[]>(
+    fields.filter((field) => field.type === "text").map((field) => field.id)
+  );
+
+  useEffect(() => {
+    onFilterRef.current = onFilter;
+  }, [onFilter]);
+
+  useEffect(() => {
+    textFieldIdsRef.current = fields
+      .filter((field) => field.type === "text")
+      .map((field) => field.id);
+  }, [fields]);
 
   // Apply filters automatically when values change
   useEffect(() => {
-    // Check if any value is a string (text search) to apply debouncing
-    const hasSearchTerm = fields.some(f => f.type === "text" && values[f.id]);
+    // Check if any text field currently has a value so we can debounce search-like filters.
+    const hasSearchTerm = textFieldIdsRef.current.some((fieldId) => values[fieldId]);
     
     if (hasSearchTerm) {
       const timer = setTimeout(() => {
-        onFilter(values);
+        onFilterRef.current(values);
       }, 300); // 300ms debounce
       return () => clearTimeout(timer);
     } else {
-      onFilter(values);
+      onFilterRef.current(values);
     }
-  }, [values, onFilter, fields]);
+  }, [values]);
 
   const handleChange = (id: string, value: any) => {
     setValues((prev) => ({ ...prev, [id]: value }));

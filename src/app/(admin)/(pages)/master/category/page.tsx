@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { DashboardConfirmDialog } from "@/components/common/DashboardConfirmDialog";
 import { DataTable } from "@/components/tables/DataTable";
 import { masterApis } from "@/utils/api/api";
@@ -17,12 +17,14 @@ export default function Page() {
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
   const [deletingCategory, setDeletingCategory] = useState<CategoryItem | null>(null);
   const [form, setForm] = useState<CategoryForm>(initialForm);
   const [filters, setFilters] = useState<Record<string, any>>({});
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const { setMasterCategories } = useAppStore();
 
   const categoryOptions = useMemo(
@@ -57,6 +59,13 @@ export default function Page() {
       return categoryMatch;
     });
   }, [categories, filters]);
+
+  const handleFilter = useCallback((vals: Record<string, any>) => {
+    setFilters(vals);
+    setPagination((prev) => (
+      prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
+    ));
+  }, []);
 
   const fetchCategories = async () => {
     setLoading(true);
@@ -107,6 +116,7 @@ export default function Page() {
   };
 
   const handleDelete = async (category: CategoryItem) => {
+    setDeleting(true);
     try {
       await masterApis.deleteCategory(category.id.toString());
       await fetchCategories();
@@ -114,6 +124,8 @@ export default function Page() {
     } catch (err: any) {
       console.log(err);
       alert(err?.message || "Failed to delete category");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -153,7 +165,7 @@ export default function Page() {
 
       <Filter 
         fields={filterFields} 
-        onFilter={setFilters} 
+        onFilter={handleFilter} 
         title="Category Filters"
       />
 
@@ -164,7 +176,13 @@ export default function Page() {
       ) : loading ? (
         <TableLoader message="Loading category master data..." />
       ) : (
-        <DataTable columns={columns} data={filteredCategories} defaultPageSize={10} />
+        <DataTable
+          columns={columns}
+          data={filteredCategories}
+          defaultPageSize={10}
+          pagination={pagination}
+          onPaginationChange={setPagination}
+        />
       )}
 
       <CategoryFormDialog
@@ -179,9 +197,13 @@ export default function Page() {
 
       <DashboardConfirmDialog
         isOpen={Boolean(deletingCategory)}
-        onClose={() => setDeletingCategory(null)}
+        onClose={() => {
+          if (!deleting) {
+            setDeletingCategory(null);
+          }
+        }}
         onConfirm={() => {
-          if (deletingCategory) {
+          if (deletingCategory && !deleting) {
             void handleDelete(deletingCategory);
           }
         }}
@@ -192,6 +214,8 @@ export default function Page() {
             : "This action will delete the selected category."
         }
         confirmLabel="Delete"
+        loading={deleting}
+        loadingLabel="Deleting..."
       />
     </div>
   );

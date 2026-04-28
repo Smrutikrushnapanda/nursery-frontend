@@ -1,12 +1,13 @@
-import { Sprout } from "lucide-react";
+import { Sprout, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type Props = {
   loading: boolean;
   disabled: boolean;
+  isEdit?: boolean;
 };
 
-export function AddPlantSubmitButton({ loading, disabled }: Props) {
+export function AddPlantSubmitButton({ loading, disabled, isEdit = false }: Props) {
   return (
     <div className="pt-2">
       <Button
@@ -33,12 +34,12 @@ export function AddPlantSubmitButton({ loading, disabled }: Props) {
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                 />
               </svg>
-              Adding Plant...
+              {isEdit ? "Updating Plant..." : "Adding Plant..."}
             </>
           ) : (
             <>
-              <Sprout className="h-5 w-5" />
-              Add Plant
+              {isEdit ? <Pencil className="h-5 w-5" /> : <Sprout className="h-5 w-5" />}
+              {isEdit ? "Update Plant" : "Add Plant"}
             </>
           )}
         </span>

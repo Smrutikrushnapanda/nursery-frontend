@@ -31,22 +31,22 @@ const steps = [
   {
     n: "01",
     title: "Smart Inventory Control",
-    desc: "Effortlessly manage plants, pots, and accessories with real-time tracking, batch management, and instant updates — all in one place.",
+    desc: "Track plants, pots, and accessories in real time from one simple dashboard.",
   },
   {
     n: "02",
     title: "Lightning-Fast Billing",
-    desc: "Scan, bill, and checkout in seconds with a mobile-first POS system designed for speed, accuracy, and a seamless customer experience.",
+    desc: "Scan items, create bills, and complete checkout in seconds.",
   },
   {
     n: "03",
     title: "Automated Payments & Invoices",
-    desc: "Accept UPI, cards, and digital payments while generating GST-ready invoices that can be shared instantly via WhatsApp or email.",
+    desc: "Accept digital payments and share GST-ready invoices instantly.",
   },
   {
     n: "04",
     title: "QR-Powered Plant Experience",
-    desc: "Transform every plant into a smart product — customers can scan QR codes to view care tips, pricing, and details instantly.",
+    desc: "Let customers scan QR codes for care tips, pricing, and plant details.",
   },
 ];
 
@@ -143,13 +143,25 @@ const Home = () => {
           </div>
         </div>
         <div className="relative z-10 order-1 lg:order-2 flex flex-col items-center lg:items-start text-center lg:text-left">
-          <h1 className="font-outfit text-4xl sm:text-5xl xl:text-6xl 2xl:text-7xl font-semibold leading-[1.1] sm:leading-[1.1] text-black">
+          <h1 className="font-outfit text-3xl sm:text-4xl xl:text-5xl 2xl:text-6xl font-semibold leading-[1.2] sm:leading-[1.1] text-black">
             Run Your Nursery <br className="hidden sm:block" /> Smarter, Faster & <br className="hidden lg:block" /> <span className="text-primary">Paperless.</span>
           </h1>
 
-          <p className="mt-6 text-base sm:text-lg xl:text-lg 2xl:text-xl text-primary max-w-sm sm:max-w-md xl:max-w-lg 2xl:max-w-xl leading-relaxed mx-auto lg:mx-0">
+          <p className="mt-5 text-sm sm:text-base xl:text-lg 2xl:text-xl text-primary max-w-sm sm:max-w-md xl:max-w-lg 2xl:max-w-xl leading-relaxed mx-auto lg:mx-0">
             Manage inventory, automate billing, and transform every plant into a smart product with QR technology — all from one powerful platform built for modern nurseries.
           </p>
+
+          {/* Mobile Image: Between text and buttons */}
+          <div className="lg:hidden mt-8 w-full max-w-[280px] sm:max-w-xs mx-auto relative">
+            <div className="bg-brand-100 rounded-[2rem] p-4 relative overflow-hidden shadow-xl border border-brand-200/20">
+              <div className="absolute -top-4 -left-4 w-12 h-12 bg-brand-700 rounded-tl-[1.5rem]" />
+              <img
+                src={heroImage.src}
+                alt="QR and plants"
+                className="relative w-full h-auto rounded-2xl shadow-sm"
+              />
+            </div>
+          </div>
 
           <div className="mt-8 2xl:mt-10 flex flex-wrap justify-center lg:justify-start gap-4 2xl:gap-6">
             <button className="bg-primary text-primary-foreground rounded-lg px-6 py-3 sm:px-7 sm:py-3 2xl:px-10 2xl:py-4 xl:text-lg font-medium hover:bg-white transition flex items-center gap-2 border-2 border-primary hover:text-primary">
@@ -182,7 +194,7 @@ function SectionTitle({ kicker, children }: { kicker?: string; children: React.R
   return (
     <div className="text-center mb-12 2xl:mb-16">
       {kicker && <p className="text-primary text-sm 2xl:text-base font-medium tracking-wider uppercase mb-2">{kicker}</p>}
-      <h2 className="font-outfit text-3xl sm:text-4xl xl:text-5xl 2xl:text-6xl font-semibold text-brand-700">{children}</h2>
+      <h2 className="font-outfit text-2xl sm:text-3xl xl:text-4xl 2xl:text-5xl font-semibold text-brand-700">{children}</h2>
     </div>
   );
 }
@@ -193,7 +205,7 @@ function Features() {
       className="features-section-wrapper"
       cursorContent={
         <div className="w-[88px] h-[88px] bg-brand-600/70 backdrop-blur-md text-white rounded-full flex items-center justify-center font-outfit font-bold text-[13px] shadow-2xl tracking-widest border border-white/20 shadow-brand-600/30">
-          EXPLORE
+          DISCOVER
         </div>
       }
     >
@@ -206,7 +218,7 @@ function Features() {
           <Reveal>
             <div className="text-center mb-16 sm:mb-20">
               <span className="text-brand-600 font-semibold tracking-wide uppercase text-sm mb-4 inline-block bg-brand-50 px-5 py-2 rounded-full border border-brand-100 shadow-sm">Why PlantScan</span>
-              <h2 className="font-outfit text-4xl sm:text-5xl xl:text-6xl font-semibold text-brand-800 mt-2 tracking-tight">Everything you need to <span className="text-primary relative inline-block">grow
+              <h2 className="font-outfit text-3xl sm:text-4xl xl:text-5xl font-semibold text-brand-800 mt-2 tracking-tight">Everything you need to <span className="text-primary relative inline-block">grow
                 <svg className="absolute -bottom-2 w-full h-3 text-brand-200 opacity-60 left-0" viewBox="0 0 100 20" preserveAspectRatio="none">
                   <path d="M0 15 Q 50 0 100 15" fill="none" stroke="currentColor" strokeWidth="4" />
                 </svg>
@@ -214,14 +226,14 @@ function Features() {
             </div>
           </Reveal>
 
-          <div className="relative grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-8 lg:gap-16 items-center">
-            <RevealStagger className="space-y-6 sm:space-y-8">
+          <div className="relative grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-8 lg:gap-16 items-stretch">
+            <RevealStagger className="flex flex-col gap-6 sm:gap-8 h-full">
               {steps.slice(0, 2).map((s) => (
-                <RevealItem key={s.n}><Step {...s} align="right" /></RevealItem>
+                <RevealItem key={s.n} className="flex-1 flex flex-col"><Step {...s} align="right" /></RevealItem>
               ))}
             </RevealStagger>
 
-            <Reveal className="hidden lg:flex relative items-center justify-center py-10 lg:py-0 w-full lg:flex order-first lg:order-none mb-10 lg:mb-0">
+            <Reveal className="relative flex items-center justify-center py-10 lg:py-0 w-full order-first lg:order-none mb-10 lg:mb-0 h-full">
               <div className="relative w-64 h-64 overflow-hidden sm:w-72 sm:h-72 lg:w-[350px] lg:h-[350px] rounded-full bg-gradient-to-br from-brand-50 to-white shadow-2xl flex items-center justify-center border-[12px] border-white p-0 group transition-transform duration-700 hover:scale-105">
                 <div className="absolute inset-0 rounded-full bg-brand-200/30 animate-pulse opacity-50" />
                 <img src={featureImage.src} alt="Feature presentation" aria-hidden className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 z-10" />
@@ -231,9 +243,9 @@ function Features() {
               </div>
             </Reveal>
 
-            <RevealStagger className="space-y-6 sm:space-y-8">
+            <RevealStagger className="flex flex-col gap-6 sm:gap-8 h-full">
               {steps.slice(2).map((s) => (
-                <RevealItem key={s.n}><Step {...s} align="left" /></RevealItem>
+                <RevealItem key={s.n} className="flex-1 flex flex-col"><Step {...s} align="left" /></RevealItem>
               ))}
             </RevealStagger>
           </div>
@@ -245,12 +257,12 @@ function Features() {
 
 function Step({ n, title, desc, align }: { n: string; title: string; desc: string; align: "left" | "right" }) {
   return (
-    <div className={`group bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 hover:shadow-xl hover:shadow-brand-500/10 hover:border-brand-200 transition-all duration-300 relative overflow-hidden flex flex-col gap-4 sm:gap-5 ${align === "right" ? "lg:items-end lg:text-right" : "lg:items-start lg:text-left"}`}>
+    <div className={`h-[260px] sm:h-[280px] 2xl:h-[320px] w-full group bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 hover:shadow-xl hover:shadow-brand-500/10 hover:border-brand-200 transition-all duration-300 relative overflow-hidden flex flex-col gap-4 sm:gap-5 ${align === "right" ? "lg:items-end lg:text-right" : "lg:items-start lg:text-left"}`}>
       <div className="absolute -top-10 -right-10 w-32 h-32 bg-brand-50/50 rounded-full opacity-50 group-hover:scale-[2] transition-transform duration-700 ease-out" />
-      <div className="relative z-10 w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center font-outfit font-bold text-2xl group-hover:bg-brand-600 group-hover:text-white transition-colors duration-300 shadow-sm border border-brand-100 group-hover:border-transparent">
+      <div className="relative z-10 shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center font-outfit font-bold text-2xl group-hover:bg-brand-600 group-hover:text-white transition-colors duration-300 shadow-sm border border-brand-100 group-hover:border-transparent">
         {n}
       </div>
-      <div className="relative z-10 space-y-2">
+      <div className="relative z-10 space-y-2 overflow-hidden">
         <h3 className="font-outfit text-xl sm:text-2xl font-semibold text-brand-800 group-hover:text-brand-700 transition-colors tracking-tight">{title}</h3>
         <p className="text-muted-foreground leading-relaxed text-[15px] sm:text-base">{desc}</p>
       </div>
@@ -267,7 +279,7 @@ function TrustedBy() {
       <div className="mx-auto max-w-7xl 2xl:max-w-[1400px] px-6 lg:px-10 2xl:px-16 relative z-10">
         <Reveal className="text-center mb-16 sm:mb-20">
           <span className="text-brand-600 font-semibold tracking-wide uppercase text-sm mb-4 inline-block bg-brand-50 px-5 py-2 rounded-full border border-brand-100 shadow-sm">Global Trust</span>
-          <h2 className="font-outfit text-4xl sm:text-5xl xl:text-6xl font-semibold text-brand-800 tracking-tight">Trusted by leading <span className="text-primary relative inline-block">nurseries
+          <h2 className="font-outfit text-3xl sm:text-4xl xl:text-5xl font-semibold text-brand-800 tracking-tight">Trusted by leading <span className="text-primary relative inline-block">nurseries
             <svg className="absolute -bottom-2 w-full h-3 text-brand-200 opacity-60 left-0" viewBox="0 0 100 20" preserveAspectRatio="none">
               <path d="M0 15 Q 50 0 100 15" fill="none" stroke="currentColor" strokeWidth="4" />
             </svg>
@@ -322,7 +334,7 @@ function FAQ() {
           <div className="lg:col-span-4 lg:sticky lg:top-32 2xl:top-40">
             <Reveal>
               <span className="text-brand-600 font-semibold tracking-wide uppercase text-sm mb-4 inline-block bg-brand-50 px-5 py-2 rounded-full border border-brand-100 shadow-sm">Support Center</span>
-              <h2 className="font-outfit text-4xl xl:text-5xl 2xl:text-6xl font-semibold text-brand-800 leading-[1.1] mt-2">
+              <h2 className="font-outfit text-3xl xl:text-4xl 2xl:text-5xl font-semibold text-brand-800 leading-[1.1] mt-2">
                 Frequently Asked <br className="hidden lg:block" /> Questions
               </h2>
               <div className="mt-8 2xl:mt-12 p-8 bg-brand-50 rounded-3xl border border-brand-100 shadow-sm">
@@ -371,7 +383,7 @@ function Testimonials() {
       <div className="mx-auto max-w-7xl 2xl:max-w-[1600px] px-6 lg:px-10 2xl:px-16 relative z-10">
         <Reveal className="text-center mb-16 2xl:mb-32">
           <span className="text-brand-600 font-semibold tracking-wide uppercase text-sm 2xl:text-base mb-4 inline-block bg-brand-50 px-5 py-2 rounded-full border border-brand-100">Success Stories</span>
-          <h2 className="font-outfit text-4xl sm:text-5xl xl:text-6xl 2xl:text-8xl font-semibold text-brand-800 tracking-tight">Voices from the <span className="text-primary italic">greenhouse.</span></h2>
+          <h2 className="font-outfit text-3xl sm:text-4xl xl:text-5xl 2xl:text-7xl font-semibold text-brand-800 tracking-tight">Voices from the <span className="text-primary italic">greenhouse.</span></h2>
         </Reveal>
 
         <div className="relative px-12 2xl:px-20">

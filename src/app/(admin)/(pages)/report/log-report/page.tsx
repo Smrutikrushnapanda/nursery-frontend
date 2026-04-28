@@ -36,6 +36,7 @@ interface RawLogData {
     statusCode: number;
     durationMs: number | null;
     createdAt: string;
+    ip?: string;
 }
 
 export default function LogReportPage() {
@@ -44,37 +45,42 @@ export default function LogReportPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isFiltered, setIsFiltered] = useState(false);
     const [filters, setFilters] = useState<Record<string, any>>({});
+    const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+    const [totalRows, setTotalRows] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
+
+    const handleFilter = useCallback((vals: Record<string, any>) => {
+        setFilters(vals);
+        setPagination((prev) => (
+            prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
+        ));
+    }, []);
 
     const fetchData = useCallback(async (currentFilters: Record<string, any>) => {
         setIsLoading(true);
         try {
-            // Check if any filter is actually set (excluding page/limit if they are defaults)
-            const activeFilters = Object.entries(currentFilters).filter(([key, value]) =>
-                value !== "" && value !== undefined && value !== null
-            );
+            const response = await reportApis.getLogReportFiltered(currentFilters);
+            // The backend returns { success: true, data: { total, rows, ... } }
+            const rows = response.data?.rows || [];
+            setRawLogs(rows);
+            setTotalRows(response.data?.total || rows.length);
+            setTotalPages(response.data?.totalPages || Math.max(1, Math.ceil((response.data?.total || rows.length) / pagination.pageSize)));
 
-            const hasActiveFilters = activeFilters.length > 0;
-            setIsFiltered(hasActiveFilters);
-
-            if (hasActiveFilters) {
-                const response = await reportApis.getLogReportFiltered(currentFilters);
-                // The backend returns { success: true, data: { total, rows, ... } }
-                setRawLogs(response.data?.rows || []);
-            } else {
-                const response = await reportApis.getLogReports();
-                // The backend returns { success: true, data: [...] }
-                setSummaryData(response.data || []);
-            }
+            setIsFiltered(true); // Always treat as detailed view now
         } catch (error) {
             console.error("Failed to fetch logs:", error);
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [pagination.pageSize]);
 
     useEffect(() => {
-        fetchData(filters);
-    }, [filters, fetchData]);
+        fetchData({
+            ...filters,
+            page: pagination.pageIndex + 1,
+            limit: pagination.pageSize,
+        });
+    }, [filters, pagination.pageIndex, pagination.pageSize, fetchData]);
 
     const stats = useMemo(() => {
         if (!isFiltered) {
@@ -112,7 +118,7 @@ export default function LogReportPage() {
         }
     }, [summaryData, rawLogs, isFiltered]);
 
-    const filterFields: FilterField[] = [
+    const filterFields: FilterField[] = useMemo(() => [
         {
             id: "method",
             label: "Method",
@@ -139,12 +145,6 @@ export default function LogReportPage() {
             placeholder: "e.g. /plants"
         },
         {
-            id: "userId",
-            label: "User ID",
-            type: "text",
-            placeholder: "User ID"
-        },
-        {
             id: "from",
             label: "From",
             type: "date"
@@ -154,73 +154,20 @@ export default function LogReportPage() {
             label: "To",
             type: "date"
         }
-    ];
+    ], []);
 
-    const summaryColumns: ColumnDef<LogSummaryData>[] = [
-        {
-            accessorKey: "method",
-            header: "Method",
-            cell: ({ row }) => {
-                const method = row.getValue("method") as string;
-                let color: "primary" | "success" | "warning" | "error" | "info" = "info";
-
-                switch (method) {
-                    case "GET": color = "primary"; break;
-                    case "POST": color = "success"; break;
-                    case "PUT": color = "warning"; break;
-                    case "PATCH": color = "warning"; break;
-                    case "DELETE": color = "error"; break;
-                }
-
-                return (
-                    <Badge color={color} className="font-bold px-3 py-1">
-                        {method}
-                    </Badge>
-                );
-            },
-        },
-        {
-            accessorKey: "statusCode",
-            header: "Status",
-            cell: ({ row }) => {
-                const status = row.getValue("statusCode") as number;
-                return (
-                    <div className="flex items-center gap-2">
-                        <div className={`h-2 w-2 rounded-full ${status < 300 ? "bg-success-500" : status < 500 ? "bg-warning-500" : "bg-error-500"
-                            }`} />
-                        <span className={`font-mono font-semibold ${status < 300 ? "text-success-700" : status < 500 ? "text-warning-700" : "text-error-700"
-                            }`}>
-                            {status}
-                        </span>
-                    </div>
-                );
-            },
-        },
-        {
-            accessorKey: "count",
-            header: "Total Requests",
-            cell: ({ row }) => (
-                <div className="font-medium text-gray-900">
-                    {(row.getValue("count") as number).toLocaleString()}
-                </div>
-            ),
-        },
-        {
-            accessorKey: "avgDurationMs",
-            header: "Avg Duration",
-            cell: ({ row }) => {
-                const duration = row.getValue("avgDurationMs") as number;
-                return (
-                    <div className="flex items-center gap-2 text-gray-600">
-                        <Clock className="w-3.5 h-3.5 text-gray-400" />
-                        <span>{duration.toLocaleString()}ms</span>
-                    </div>
-                );
-            },
-        },
-    ];
 
     const rawColumns: ColumnDef<RawLogData>[] = [
+        {
+            id: "slNo",
+            header: "Sl No",
+            cell: ({ row }) => (
+                <span className="text-gray-500 font-medium">
+                    {pagination.pageIndex * pagination.pageSize + row.index + 1}
+                </span>
+            ),
+            size: 50,
+        },
         {
             accessorKey: "createdAt",
             header: "Timestamp",
@@ -249,9 +196,22 @@ export default function LogReportPage() {
         {
             accessorKey: "endpoint",
             header: "Endpoint",
+            cell: ({ row }) => {
+                const endpoint = row.getValue("endpoint") as string;
+                const lastWord = endpoint?.split('/').filter(Boolean).pop() || endpoint;
+                return (
+                    <div className="text-sm font-medium text-gray-700 truncate max-w-[200px]" title={endpoint}>
+                        {lastWord}
+                    </div>
+                );
+            }
+        },
+        {
+            accessorKey: "ip",
+            header: "IP Address",
             cell: ({ row }) => (
-                <div className="text-sm font-medium text-gray-700 truncate max-w-[200px]" title={row.getValue("endpoint")}>
-                    {row.getValue("endpoint")}
+                <div className="text-xs text-gray-500 font-mono">
+                    {row.original.ip || "-"}
                 </div>
             )
         },
@@ -263,15 +223,6 @@ export default function LogReportPage() {
                 const color = status < 300 ? "text-success-600" : status < 500 ? "text-warning-600" : "text-error-600";
                 return <span className={`font-mono font-bold ${color}`}>{status}</span>;
             }
-        },
-        {
-            accessorKey: "userId",
-            header: "User",
-            cell: ({ row }) => (
-                <div className="text-xs text-gray-400">
-                    {row.getValue("userId") || "Guest"}
-                </div>
-            )
         },
         {
             accessorKey: "durationMs",
@@ -306,47 +257,11 @@ export default function LogReportPage() {
                 </div>
             </div>
 
-            {/* Metrics Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <MetricCard
-                    title="Total Requests"
-                    value={stats.totalRequests.toLocaleString()}
-                    icon={<BarChart3 className="w-5 h-5 text-blue-500" />}
-                    trend="+12.5%"
-                    color="blue"
-                />
-                <MetricCard
-                    title="Success Rate"
-                    value={`${stats.successRate}%`}
-                    icon={<CheckCircle2 className="w-5 h-5 text-success-500" />}
-                    trend="Stable"
-                    color="success"
-                />
-                <MetricCard
-                    title="Avg Latency"
-                    value={`${stats.avgDuration}ms`}
-                    icon={<Clock className="w-5 h-5 text-warning-500" />}
-                    trend="-45ms"
-                    color="warning"
-                />
-                <MetricCard
-                    title="Total Errors"
-                    value={stats.errorRequests.toLocaleString()}
-                    icon={<AlertCircle className="w-5 h-5 text-error-500" />}
-                    trend="+2"
-                    color="error"
-                />
-            </div>
-
             {/* Table Section */}
             <div className="bg-white rounded-2xl overflow-hidden min-h-[400px]">
                 <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/30 flex justify-between items-center">
                     <h2 className="font-semibold text-gray-800 flex items-center gap-2">
-                        {isFiltered ? (
-                            <><Layout className="w-4 h-4 text-brand-500" /> Filtered Logs</>
-                        ) : (
-                            <><Activity className="w-4 h-4 text-brand-500" /> Request Summary</>
-                        )}
+                        <Layout className="w-4 h-4 text-brand-500" /> API Activity Logs
                     </h2>
                     {isFiltered && !isLoading && (
                         <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">
@@ -357,7 +272,7 @@ export default function LogReportPage() {
                 <div className="px-6 pt-4">
                     <Filter
                         fields={filterFields}
-                        onFilter={(vals) => setFilters(vals)}
+                        onFilter={handleFilter}
                         title="Log Filters"
                     />
                 </div>
@@ -369,44 +284,16 @@ export default function LogReportPage() {
                 ) : (
                     <div className="pt-4">
                         <DataTable
-                            columns={isFiltered ? rawColumns : summaryColumns}
-                            data={isFiltered ? rawLogs : summaryData}
+                            columns={rawColumns}
+                            data={rawLogs}
+                            manualPagination={true}
+                            totalCount={totalRows}
+                            pageCount={totalPages}
+                            pagination={pagination}
+                            onPaginationChange={setPagination}
                         />
                     </div>
                 )}
-            </div>
-        </div>
-    );
-}
-
-function MetricCard({ title, value, icon, trend, color }: {
-    title: string,
-    value: string,
-    icon: React.ReactNode,
-    trend: string,
-    color: 'blue' | 'success' | 'warning' | 'error'
-}) {
-    const colorMap = {
-        blue: "bg-blue-50 text-blue-600 border-blue-100",
-        success: "bg-success-50 text-success-600 border-success-100",
-        warning: "bg-warning-50 text-warning-600 border-warning-100",
-        error: "bg-error-50 text-error-600 border-error-100"
-    };
-
-    return (
-        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-theme-xs group hover:shadow-theme-md transition-all duration-300">
-            <div className="flex justify-between items-start mb-4">
-                <div className={`p-2.5 rounded-xl border ${colorMap[color]}`}>
-                    {icon}
-                </div>
-                <div className="flex items-center gap-1 text-[11px] font-bold text-success-600 bg-success-50 px-2 py-0.5 rounded-full">
-                    <ArrowUpRight className="w-3 h-3" />
-                    {trend}
-                </div>
-            </div>
-            <div>
-                <p className="text-sm font-medium text-gray-500">{title}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
             </div>
         </div>
     );

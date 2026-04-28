@@ -11,8 +11,6 @@ export type Subcategory = {
 
 export type PlantFormState = {
   name: string;
-  sku: string;
-  price: string;
   description: string;
   careInstructions: string;
   waterRequirement: string;

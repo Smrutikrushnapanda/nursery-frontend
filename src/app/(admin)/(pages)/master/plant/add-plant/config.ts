@@ -2,8 +2,6 @@ import { PlantFormState } from "./types";
 
 export const initialForm: PlantFormState = {
   name: "",
-  sku: "",
-  price: "",
   description: "",
   careInstructions: "",
   waterRequirement: "",
@@ -25,37 +23,76 @@ export const initialForm: PlantFormState = {
 export const petToxicityOptions = ["Non-toxic", "Mild", "Moderate", "Severe", "Toxic"];
 export const MAX_IMAGE_UPLOADS = 4;
 
+export const seasonOptions = ["Spring", "Summer", "Monsoon", "Autumn", "Pre-winter", "Winter", "All"];
+export const waterRequirementOptions = ["Low", "Moderate", "High"];
+export const sunlightOptions = ["Full Sun", "Partial Sun", "Partial Shade", "Full Shade"];
+export const humidityOptions = ["Low", "Moderate", "High"];
+export const soilTypeOptions = ["Well-draining", "Loamy", "Sandy", "Clayey", "Peaty", "Chalky"];
+export const fertilizingOptions = ["Weekly", "Bi-weekly", "Monthly", "Quarterly", "Annually", "As needed"];
+export const pruningOptions = ["Weekly", "Monthly", "Yearly", "As needed"];
+
 export const basicFields: Array<{
   name: keyof PlantFormState;
   label: string;
   placeholder: string;
   required?: boolean;
+  type?: "text" | "select";
+  options?: string[];
 }> = [
-  { name: "name", label: "Plant Name", placeholder: "e.g., Monstera Deliciosa", required: true },
-  { name: "sku", label: "SKU", placeholder: "e.g., PLT-001" },
-  { name: "price", label: "Price", placeholder: "e.g., 299" },
+  { name: "name", label: "Plant Name", placeholder: "e.g., Monstera Deliciosa", required: true, type: "text" },
   {
     name: "scientificName",
     label: "Scientific Name",
     placeholder: "e.g., Monstera deliciosa",
+    type: "text"
   },
-  { name: "season", label: "Season", placeholder: "e.g., Spring, Summer, Year-round" },
+  { 
+    name: "season", 
+    label: "Season", 
+    placeholder: "Select season", 
+    type: "select", 
+    options: seasonOptions 
+  },
   {
     name: "waterRequirement",
     label: "Water Requirement",
-    placeholder: "e.g., Low, Moderate, High",
+    placeholder: "Select requirement",
+    type: "select",
+    options: waterRequirementOptions
   },
   {
     name: "sunlightRequirement",
     label: "Sunlight Requirement",
-    placeholder: "e.g., Full Sun, Partial Shade",
+    placeholder: "Select sunlight",
+    type: "select",
+    options: sunlightOptions
   },
-  { name: "humidityLevel", label: "Humidity Level", placeholder: "e.g., Low, Medium, High" },
-  { name: "soilType", label: "Soil Type", placeholder: "e.g., Well-draining soil" },
+  { 
+    name: "humidityLevel", 
+    label: "Humidity Level", 
+    placeholder: "Select humidity", 
+    type: "select", 
+    options: humidityOptions 
+  },
+  { 
+    name: "soilType", 
+    label: "Soil Type", 
+    placeholder: "Select soil type", 
+    type: "select", 
+    options: soilTypeOptions 
+  },
   {
     name: "fertilizingFrequency",
     label: "Fertilizing Frequency",
-    placeholder: "e.g., Monthly",
+    placeholder: "Select frequency",
+    type: "select",
+    options: fertilizingOptions
   },
-  { name: "pruningFrequency", label: "Pruning Frequency", placeholder: "e.g., As needed" },
+  { 
+    name: "pruningFrequency", 
+    label: "Pruning Frequency", 
+    placeholder: "Select frequency", 
+    type: "select", 
+    options: pruningOptions 
+  },
 ];

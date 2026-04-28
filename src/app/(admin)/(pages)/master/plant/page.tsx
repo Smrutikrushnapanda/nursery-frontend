@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Sprout } from "lucide-react";
 import { DataTable } from "@/components/tables/DataTable";
 import { masterApis } from "@/utils/api/api";
@@ -9,19 +10,24 @@ import {
   type PlantMasterRow,
   mapPlantsToMasterRows,
 } from "./PlantMasterData";
-import { plantMasterColumns } from "./PlantMasterColumns";
+import { getPlantMasterColumns } from "./PlantMasterColumns";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { TableLoader } from "@/components/table-loader/table-loader";
 import { Filter, FilterField } from "@/components/common/Filter";
+import { DashboardConfirmDialog } from "@/components/common/DashboardConfirmDialog";
 
 export default function Page() {
   const [plants, setPlants] = useState<PlantMasterRow[]>([]);
   const [filteredPlants, setFilteredPlants] = useState<PlantMasterRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
   const [subCategories, setSubCategories] = useState<{ id: number; name: string }[]>([]);
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const [deletingPlant, setDeletingPlant] = useState<PlantMasterRow | null>(null);
+  const router = useRouter();
 
   const fetchPlants = async () => {
     setLoading(true);
@@ -129,11 +135,59 @@ export default function Page() {
     }
 
     setFilteredPlants(filtered);
+    setPagination((prev) => (
+      prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
+    ));
   }, [plants]);
 
   const handleReset = useCallback(() => {
     setFilteredPlants(plants);
+    setPagination((prev) => (
+      prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
+    ));
   }, [plants]);
+
+  const handleDelete = useCallback(async (plant: PlantMasterRow) => {
+    setDeleting(true);
+    try {
+      await masterApis.deletePlant(Number(plant.id));
+      await fetchPlants();
+      setDeletingPlant(null);
+    } catch (error: any) {
+      console.log(error);
+      alert(error?.message || "Failed to delete plant");
+    } finally {
+      setDeleting(false);
+    }
+  }, []);
+
+  const handleEdit = useCallback((plant: PlantMasterRow) => {
+    router.push(`/master/plant/add-plant?edit=${plant.id}`);
+  }, [router]);
+
+  const columns = useMemo(
+    () => getPlantMasterColumns({ onEdit: handleEdit, onDelete: setDeletingPlant }),
+    [handleEdit]
+  );
+
+  const handleDownloadExcel = async () => {
+    const { utils, writeFile } = await import('xlsx');
+    
+    if (plants.length === 0) return;
+
+    const worksheet = utils.json_to_sheet(plants.map(p => ({
+       ID: p.id,
+       Name: p.name,
+       SKU: p.sku,
+       Category: p.category,
+       Subcategory: p.subcategory,
+       Status: p.status ? "Active" : "Inactive"
+    })));
+    
+    const workbook = utils.book_new();
+    utils.book_append_sheet(workbook, worksheet, "Plants");
+    writeFile(workbook, `plants_master_${new Date().getTime()}.xlsx`);
+  };
 
   return (
     <div className="space-y-6">
@@ -158,8 +212,38 @@ export default function Page() {
       ) : loading ? (
         <TableLoader message="Loading plant master data..." />
       ) : (
-        <DataTable columns={plantMasterColumns} data={filteredPlants} defaultPageSize={10} />
+        <DataTable
+          columns={columns}
+          data={filteredPlants}
+          defaultPageSize={10}
+          pagination={pagination}
+          onPaginationChange={setPagination}
+          onDownloadAll={handleDownloadExcel}
+        />
       )}
+
+      <DashboardConfirmDialog
+        isOpen={Boolean(deletingPlant)}
+        onClose={() => {
+          if (!deleting) {
+            setDeletingPlant(null);
+          }
+        }}
+        onConfirm={() => {
+          if (deletingPlant && !deleting) {
+            void handleDelete(deletingPlant);
+          }
+        }}
+        title="Delete Plant"
+        description={
+          deletingPlant
+            ? `This will delete "${deletingPlant.name}". You can't undo this from the table.`
+            : "This action will delete the selected plant."
+        }
+        confirmLabel="Delete"
+        loading={deleting}
+        loadingLabel="Deleting..."
+      />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { DashboardDialog } from "@/components/common/DashboardDialog";
 import { StockFormDialog, StockFormState, StockVariantOption } from "@/components/inventory/StockFormDialog";
 import { DeadStockDialog } from "@/components/inventory/DeadStockDialog";
@@ -41,6 +41,7 @@ export default function InventoryPage() {
   const [viewingStock, setViewingStock] = useState<InventoryItem | null>(null);
   const [deadStockTarget, setDeadStockTarget] = useState<InventoryItem | null>(null);
   const [filters, setFilters] = useState<Record<string, any>>({});
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
   const [subCategories, setSubCategories] = useState<{ id: number; name: string }[]>([]);
 
@@ -104,7 +105,7 @@ export default function InventoryPage() {
     });
   }, [stocks, filters]);
 
-  const getStocks = async () => {
+  const getStocks = useCallback(async () => {
     setIsPageLoading(true);
     try {
       const response = await getAllStocks();
@@ -118,7 +119,7 @@ export default function InventoryPage() {
     } finally {
       setIsPageLoading(false);
     }
-  };
+  }, [getAllStocks, setStocks]);
 
   const loadVariantOptions = async () => {
     try {
@@ -268,6 +269,33 @@ export default function InventoryPage() {
     [getStocks]
   );
 
+  const handleFilter = useCallback((vals: Record<string, any>) => {
+    setFilters(vals);
+    setPagination((prev) => (
+      prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
+    ));
+  }, []);
+
+  const handleDownloadExcel = async () => {
+    const { utils, writeFile } = await import('xlsx');
+    
+    if (!stocks || stocks.length === 0) return;
+
+    const worksheet = utils.json_to_sheet(stocks.map(s => ({
+       ID: s.id,
+       Plant: s.variant?.plant?.name || "-",
+       SKU: s.variant?.sku || "-",
+       Size: s.variant?.size || "-",
+       Quantity: s.quantity,
+       Status: getStockStatus(s),
+       LastUpdated: new Date(s.updatedAt).toLocaleString()
+    })));
+    
+    const workbook = utils.book_new();
+    utils.book_append_sheet(workbook, worksheet, "Inventory");
+    writeFile(workbook, `inventory_master_${new Date().getTime()}.xlsx`);
+  };
+
   if (isPageLoading) return <TableLoader message="Loading Inventory..." />;
 
   return (
@@ -281,11 +309,17 @@ export default function InventoryPage() {
 
       <Filter
         fields={filterFields}
-        onFilter={setFilters}
+        onFilter={handleFilter}
         title="Stock Filters"
       />
 
-      <DataTable columns={columns} data={filteredStocks ?? []} />
+      <DataTable
+        columns={columns}
+        data={filteredStocks ?? []}
+        pagination={pagination}
+        onPaginationChange={setPagination}
+        onDownloadAll={handleDownloadExcel}
+      />
 
       {dialogMode ? (
         <StockFormDialog

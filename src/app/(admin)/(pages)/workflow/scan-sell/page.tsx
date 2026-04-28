@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { DataTable } from "@/components/tables/DataTable"
 import { getScanActivityLabel, getScanSellColumns, DailyScan } from "@/components/tables/scanSellColumns"
 import { qrApis } from "@/utils/api/api"
@@ -21,6 +21,7 @@ export default function ScanSellPage() {
   const [isCustom, setIsCustom] = useState(false)
   const [customValue, setCustomValue] = useState("30")
   const [filters, setFilters] = useState<Record<string, any>>({})
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
 
   const filterFields: FilterField[] = useMemo(
     () => [
@@ -70,6 +71,9 @@ export default function ScanSellPage() {
     if (!isNaN(num) && num > 0) {
       setDays(num)
       fetchScanAnalytics(num)
+      setPagination((prev) => (
+        prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
+      ))
     }
   }
 
@@ -79,7 +83,17 @@ export default function ScanSellPage() {
     setIsCustom(false)
     setCustomValue(d.toString())
     fetchScanAnalytics(d)
+    setPagination((prev) => (
+      prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
+    ))
   }
+
+  const handleFilter = useCallback((vals: Record<string, any>) => {
+    setFilters(vals)
+    setPagination((prev) => (
+      prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
+    ))
+  }, [])
 
   const columns = useMemo(() => getScanSellColumns(), [])
   const filteredDailyScans = useMemo(() => {
@@ -213,7 +227,7 @@ export default function ScanSellPage() {
         <div className="px-4 pt-4 2xl:px-6">
           <Filter
             fields={filterFields}
-            onFilter={setFilters}
+            onFilter={handleFilter}
             title="Scan Filters"
           />
         </div>
@@ -224,7 +238,12 @@ export default function ScanSellPage() {
             </div>
           )}
 
-          <DataTable columns={columns} data={filteredDailyScans} />
+          <DataTable
+            columns={columns}
+            data={filteredDailyScans}
+            pagination={pagination}
+            onPaginationChange={setPagination}
+          />
         </div>
       </div>
 

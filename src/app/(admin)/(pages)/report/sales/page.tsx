@@ -11,6 +11,7 @@ export default function SalesReportsPage() {
   const [data, setData] = useState<SalesData[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [reportType, setReportType] = useState<string>("daily")
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
 
   const [customDays, setCustomDays] = useState<string>("30")
 
@@ -22,6 +23,9 @@ export default function SalesReportsPage() {
       const response = await reportApis.getSalesReports(queryType)
       if (response.success) {
         setData(response.data)
+        setPagination((prev) => (
+          prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
+        ))
       }
     } catch (error: any) {
       console.error("Failed to fetch sales reports:", error)
@@ -150,9 +154,34 @@ export default function SalesReportsPage() {
               <TableLoader message="Updating sales data..." isOverlay />
             </div>
           )}
-          <DataTable columns={columns} data={data} />
+          <DataTable
+            columns={columns}
+            data={data}
+            pagination={pagination}
+            onPaginationChange={setPagination}
+            onDownloadAll={() => handleDownloadExcel(data)}
+          />
         </div>
       </div>
     </div>
   )
 }
+
+const handleDownloadExcel = async (data: SalesData[]) => {
+  const { utils, writeFile } = await import('xlsx');
+  
+  const dataToExport = data;
+
+  if (dataToExport.length === 0) return;
+
+  const worksheet = utils.json_to_sheet(dataToExport.map((sale: any) => ({
+     "Period": sale.period,
+     "Revenue": sale.revenue,
+     "Orders": sale.orderCount,
+     "Average Order Value": sale.orderCount > 0 ? (sale.revenue / sale.orderCount).toFixed(2) : 0
+  })));
+  
+  const workbook = utils.book_new();
+  utils.book_append_sheet(workbook, worksheet, "Sales Report");
+  writeFile(workbook, `sales_report_${new Date().toISOString().split('T')[0]}.xlsx`);
+};

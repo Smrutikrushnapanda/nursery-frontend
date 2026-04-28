@@ -50,6 +50,7 @@ const DUMMY_QR_DATA: QrCodeItem[] = [
 
 export default function QrViewPage() {
   const [viewingQr, setViewingQr] = useState<QrCodeItem | null>(null)
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
 
   const columns = useMemo(
     () =>
@@ -74,7 +75,12 @@ export default function QrViewPage() {
       </div>
 
       <div className="bg-white rounded-xl overflow-hidden">
-        <DataTable columns={columns} data={DUMMY_QR_DATA} />
+        <DataTable
+          columns={columns}
+          data={DUMMY_QR_DATA}
+          pagination={pagination}
+          onPaginationChange={setPagination}
+        />
       </div>
 
       <DashboardDialog
