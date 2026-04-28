@@ -400,10 +400,10 @@ export const masterApis = {
     },
 
     //Categories and sub categories
-    getCategories: async () => {
+    getCategories: async (filters?: { name?: string }) => {
         try {
-
             const { data } = await api.get("/master/category", {
+                params: filters,
                 withCredentials: true
             });
 
@@ -470,13 +470,10 @@ export const masterApis = {
         }
     },
 
-    getSubCategories: async (categoryId?: number) => {
+    getSubCategories: async (filters?: { categoryId?: number; name?: string }) => {
         try {
-
-            const query = typeof categoryId === "number"
-                ? `?categoryId=${categoryId}`
-                : "";
-            const { data } = await api.get(`/master/dashboard/subcategories${query}`, {
+            const { data } = await api.get(`/master/dashboard/subcategories`, {
+                params: filters,
                 withCredentials: true
             })
 
@@ -529,7 +526,17 @@ export const masterApis = {
 
 export const inventoryApis = {
 
-    getAllStocks: async (filters?: { categoryId?: number; subcategoryId?: number }) => {
+    getAllStocks: async (filters?: {
+        categoryName?: string;
+        subCategoryName?: string;
+        status?: "In Stock" | "Low Stock" | "Out of Stock";
+        size?: "TINY" | "SMALL" | "MEDIUM" | "LARGE" | "EXTRA_LARGE";
+        activity?: "generated" | "not_generated" | "most_scanned" | "least_scanned" | "recently_scanned" | "never_scanned";
+        minPrice?: number | string;
+        maxPrice?: number | string;
+        minQuantity?: number | string;
+        maxQuantity?: number | string;
+    }) => {
         try {
             const { data } = await api.get("/inventory", {
                 params: filters,

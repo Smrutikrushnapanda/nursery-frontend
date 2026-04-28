@@ -42,7 +42,7 @@ export default function Page() {
   const filterFields: FilterField[] = useMemo(
     () => [
       {
-        id: "category",
+        id: "name",
         label: "Category Name",
         type: "select",
         options: categoryOptions,
@@ -53,26 +53,29 @@ export default function Page() {
   );
 
   const filteredCategories = useMemo(() => {
-    return categories.filter(category => {
-      const categoryName = category.name ?? "";
-      const categoryMatch = !filters.category || categoryName === filters.category;
-      return categoryMatch;
-    });
-  }, [categories, filters]);
+    return categories;
+  }, [categories]);
 
   const handleFilter = useCallback((vals: Record<string, any>) => {
-    setFilters(vals);
+    void fetchCategories({ name: vals.name });
     setPagination((prev) => (
       prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
     ));
   }, []);
 
-  const fetchCategories = async () => {
+  const handleReset = useCallback(() => {
+    void fetchCategories();
+    setPagination((prev) => (
+      prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
+    ));
+  }, []);
+
+  const fetchCategories = async (filters?: { name?: string }) => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await masterApis.getCategories();
+      const response = await masterApis.getCategories(filters);
       const nextCategories = Array.isArray(response?.data?.data) ? response.data.data : [];
       setMasterCategories(nextCategories);
       setCategories(nextCategories);
@@ -150,6 +153,24 @@ export default function Page() {
     }
   };
 
+  const handleDownloadExcel = async () => {
+    const { utils, writeFile } = await import('xlsx');
+    
+    if (categories.length === 0) return;
+
+    const worksheet = utils.json_to_sheet(categories.map(c => ({
+       ID: c.id,
+       Name: c.name || "-",
+       Description: c.description || "-",
+       PlantsCount: c.plants?.length || 0,
+       CreatedAt: new Date(c.createdAt).toLocaleDateString()
+    })));
+    
+    const workbook = utils.book_new();
+    utils.book_append_sheet(workbook, worksheet, "Categories");
+    writeFile(workbook, `categories_master_${new Date().getTime()}.xlsx`);
+  };
+
   const columns = useMemo(
     () =>
       getCategoryColumns({
@@ -166,11 +187,12 @@ export default function Page() {
       <Filter 
         fields={filterFields} 
         onFilter={handleFilter} 
+        onReset={handleReset}
         title="Category Filters"
       />
 
       {error ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 mt-4">
           {error}
         </div>
       ) : loading ? (
@@ -178,10 +200,11 @@ export default function Page() {
       ) : (
         <DataTable
           columns={columns}
-          data={filteredCategories}
+          data={categories}
           defaultPageSize={10}
           pagination={pagination}
           onPaginationChange={setPagination}
+          onDownloadAll={handleDownloadExcel}
         />
       )}
 

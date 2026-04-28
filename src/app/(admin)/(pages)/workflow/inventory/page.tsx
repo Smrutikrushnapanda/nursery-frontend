@@ -47,25 +47,18 @@ export default function InventoryPage() {
 
   const filterFields: FilterField[] = useMemo(() => [
     {
-      id: "categoryId",
+      id: "categoryName",
       label: "Category",
       type: "select",
-      options: categories.map(c => ({ value: c.id.toString(), label: c.name })),
+      options: categories.map(c => ({ value: c.name, label: c.name })),
       placeholder: "All Categories"
     },
     {
-      id: "subcategoryId",
+      id: "subCategoryName",
       label: "Sub Category",
       type: "select",
-      options: subCategories.map(s => ({ value: s.id.toString(), label: s.name })),
+      options: subCategories.map(s => ({ value: s.name, label: s.name })),
       placeholder: "All Sub Categories"
-    },
-    {
-      id: "variant",
-      label: "Variant",
-      type: "select",
-      options: sizeOptions.map(size => ({ value: size, label: size.replaceAll("_", " ") })),
-      placeholder: "All Variants"
     },
     {
       id: "status",
@@ -79,10 +72,55 @@ export default function InventoryPage() {
       placeholder: "All Status"
     },
     {
-      id: "plant",
-      label: "Plant Name",
+      id: "size",
+      label: "Size",
+      type: "select",
+      options: [
+        { value: "TINY", label: "Tiny" },
+        { value: "SMALL", label: "Small" },
+        { value: "MEDIUM", label: "Medium" },
+        { value: "LARGE", label: "Large" },
+        { value: "EXTRA_LARGE", label: "Extra Large" }
+      ],
+      placeholder: "All Sizes"
+    },
+    {
+      id: "activity",
+      label: "QR Activity",
+      type: "select",
+      options: [
+        { value: "generated", label: "QR Generated" },
+        { value: "not_generated", label: "No QR" },
+        { value: "most_scanned", label: "Most Scanned" },
+        { value: "least_scanned", label: "Least Scanned" },
+        { value: "recently_scanned", label: "Recently Scanned" },
+        { value: "never_scanned", label: "Never Scanned" }
+      ],
+      placeholder: "All Activity"
+    },
+    {
+      id: "minPrice",
+      label: "Min Price",
       type: "text",
-      placeholder: "Search by plant..."
+      placeholder: "Min \u20B9"
+    },
+    {
+      id: "maxPrice",
+      label: "Max Price",
+      type: "text",
+      placeholder: "Max \u20B9"
+    },
+    {
+      id: "minQuantity",
+      label: "Min Qty",
+      type: "text",
+      placeholder: "Min Qty"
+    },
+    {
+      id: "maxQuantity",
+      label: "Max Qty",
+      type: "text",
+      placeholder: "Max Qty"
     }
   ], [categories, subCategories]);
 
@@ -90,7 +128,7 @@ export default function InventoryPage() {
     return stocks ?? [];
   }, [stocks]);
 
-  const getStocks = useCallback(async (filters?: { categoryId?: number; subcategoryId?: number }) => {
+  const getStocks = useCallback(async (filters?: any) => {
     setIsPageLoading(true);
     try {
       const response = await getAllStocks(filters);
@@ -105,6 +143,13 @@ export default function InventoryPage() {
       setIsPageLoading(false);
     }
   }, [getAllStocks, setStocks]);
+
+  const handleReset = useCallback(() => {
+    void getStocks();
+    setPagination((prev) => (
+      prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
+    ));
+  }, [getStocks]);
 
   const loadVariantOptions = async () => {
     try {
@@ -255,10 +300,15 @@ export default function InventoryPage() {
   );
 
   const handleFilter = useCallback((vals: Record<string, any>) => {
-    const filters: any = {};
-    if (vals.categoryId) filters.categoryId = Number(vals.categoryId);
-    if (vals.subcategoryId) filters.subcategoryId = Number(vals.subcategoryId);
+    const filters: any = { ...vals };
     
+    // Clean up empty strings and ensure numeric values where needed
+    Object.keys(filters).forEach(key => {
+      if (filters[key] === "" || filters[key] === null || filters[key] === undefined) {
+        delete filters[key];
+      }
+    });
+
     void getStocks(filters);
 
     setPagination((prev) => (
@@ -300,6 +350,7 @@ export default function InventoryPage() {
       <Filter
         fields={filterFields}
         onFilter={handleFilter}
+        onReset={handleReset}
         title="Stock Filters"
       />
 

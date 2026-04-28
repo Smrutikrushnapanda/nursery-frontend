@@ -81,6 +81,7 @@ export function DeadStockDialog({
             id="deadQuantity"
             type="number"
             value={quantity}
+            disabled={saving}
             onChange={(e) => {
               setQuantity(e.target.value);
               if (errors.quantity) setErrors(prev => ({ ...prev, quantity: "" }));
@@ -94,6 +95,7 @@ export function DeadStockDialog({
           <Input
             id="deadReason"
             value={reason}
+            disabled={saving}
             onChange={(e) => {
               setReason(e.target.value);
               if (errors.reason) setErrors(prev => ({ ...prev, reason: "" }));

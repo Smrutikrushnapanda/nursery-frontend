@@ -57,6 +57,7 @@ export function CategoryFormDialog({
             id="name"
             name="name"
             value={form.name}
+            disabled={saving}
             onChange={(e) => {
               onChange(e);
               if (errors.name) setErrors({});
@@ -71,6 +72,7 @@ export function CategoryFormDialog({
             id="description"
             name="description"
             value={form.description}
+            disabled={saving}
             onChange={onChange}
             placeholder="Describe what this category is used for"
             rows={4}
