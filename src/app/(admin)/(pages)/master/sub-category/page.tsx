@@ -61,15 +61,15 @@ export default function Page() {
   const filterFields: FilterField[] = useMemo(
     () => [
       {
-        id: "category",
+        id: "categoryId",
         label: "Category",
         type: "select",
-        options: categoryOptions.map((cat) => ({ value: cat.name, label: cat.name })),
+        options: categoryOptions.map((cat) => ({ value: cat.id.toString(), label: cat.name })),
         placeholder: "All Categories",
       },
       {
-        id: "subcategory",
-        label: "Sub-category",
+        id: "name",
+        label: "Sub-category Name",
         type: "select",
         options: subCategoryOptions,
         placeholder: "All Sub-categories",
@@ -79,19 +79,23 @@ export default function Page() {
   );
 
   const filteredSubCategories = useMemo(() => {
-    return subCategories.filter(sub => {
-      const categoryName = sub.categoryName ?? "";
-      const subCategoryName = sub.name ?? "";
-
-      const categoryMatch = !filters.category || categoryName === filters.category;
-      const subCategoryMatch = !filters.subcategory || subCategoryName === filters.subcategory;
-
-      return categoryMatch && subCategoryMatch;
-    });
-  }, [subCategories, filters]);
+    return subCategories;
+  }, [subCategories]);
 
   const handleFilter = useCallback((vals: Record<string, any>) => {
-    setFilters(vals);
+    const filters: any = {};
+    if (vals.categoryId) filters.categoryId = Number(vals.categoryId);
+    if (vals.name) filters.name = vals.name;
+
+    void fetchPageData(filters);
+
+    setPagination((prev) => (
+      prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
+    ));
+  }, []);
+
+  const handleReset = useCallback(() => {
+    void fetchPageData();
     setPagination((prev) => (
       prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
     ));
@@ -112,12 +116,12 @@ export default function Page() {
     }
   }, []);
 
-  const fetchPageData = async () => {
+  const fetchPageData = async (filters?: { categoryId?: number; name?: string }) => {
     setLoading(true);
     setError(null);
 
     try {
-      const subCategoriesResponse = await masterApis.getSubCategories();
+      const subCategoriesResponse = await masterApis.getSubCategories(filters);
       setSubCategories(
         Array.isArray(subCategoriesResponse?.data)
           ? subCategoriesResponse.data.map(normalizeSubCategory)
@@ -200,6 +204,25 @@ export default function Page() {
     }
   };
 
+  const handleDownloadExcel = async () => {
+    const { utils, writeFile } = await import('xlsx');
+    
+    if (subCategories.length === 0) return;
+
+    const worksheet = utils.json_to_sheet(subCategories.map(s => ({
+       ID: s.id,
+       Name: s.name || "-",
+       Category: s.categoryName || "-",
+       CategoryID: s.categoryId || "-",
+       PlantsCount: s.plants?.length || 0,
+       CreatedAt: new Date(s.createdAt).toLocaleDateString()
+    })));
+    
+    const workbook = utils.book_new();
+    utils.book_append_sheet(workbook, worksheet, "Subcategories");
+    writeFile(workbook, `subcategories_master_${new Date().getTime()}.xlsx`);
+  };
+
   const columns = useMemo(
     () =>
       getSubCategoryColumns({
@@ -216,11 +239,12 @@ export default function Page() {
       <Filter 
         fields={filterFields} 
         onFilter={handleFilter} 
+        onReset={handleReset}
         title="Sub-category Filters"
       />
 
       {error ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 mt-4">
           {error}
         </div>
       ) : loading ? (
@@ -228,10 +252,11 @@ export default function Page() {
       ) : (
         <DataTable
           columns={columns}
-          data={filteredSubCategories}
+          data={subCategories}
           defaultPageSize={10}
           pagination={pagination}
           onPaginationChange={setPagination}
+          onDownloadAll={handleDownloadExcel}
         />
       )}
 

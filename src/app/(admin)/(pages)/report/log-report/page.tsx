@@ -133,6 +133,12 @@ export default function LogReportPage() {
             ]
         },
         {
+            id: "userId",
+            label: "User ID",
+            type: "text",
+            placeholder: "Filter by User ID..."
+        },
+        {
             id: "status",
             label: "Status",
             type: "text",

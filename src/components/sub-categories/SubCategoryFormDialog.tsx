@@ -52,6 +52,7 @@ export function SubCategoryFormDialog({
           <select
             name="categoryId"
             value={form.categoryId}
+            disabled={saving}
             onChange={(e) => onCategoryChange(e.target.value)}
             className="w-full rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500"
           >
@@ -72,6 +73,7 @@ export function SubCategoryFormDialog({
             id="name"
             name="name"
             value={form.name}
+            disabled={saving}
             onChange={onInputChange}
             placeholder="e.g., Money Plant"
             required

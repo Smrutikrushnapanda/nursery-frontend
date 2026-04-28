@@ -271,20 +271,14 @@ export default function PrintQrPage() {
           const next = { ...prev };
 
           for (const item of generatedItems) {
-            const plantId = Number(item?.plantId ?? 0);
+            const variantId = Number(item?.variantId ?? 0);
             const qrImageBase64 = item?.qrImageBase64;
 
-            if (!plantId || typeof qrImageBase64 !== "string" || !qrImageBase64) {
+            if (!variantId || typeof qrImageBase64 !== "string" || !qrImageBase64) {
               continue;
             }
 
-            for (const stock of stocks ?? []) {
-              const stockPlantId = Number((stock.variant?.plant as any)?.id ?? 0);
-
-              if (stockPlantId === plantId) {
-                next[stock.variantId] = qrImageBase64;
-              }
-            }
+            next[variantId] = qrImageBase64;
           }
 
           return next;
@@ -314,20 +308,20 @@ export default function PrintQrPage() {
         return;
       }
 
-      let x = 15;
-      let y = 15;
-      const qrSize = 40;
-      const margin = 15;
-      const rowSpacing = 25;
-      const itemsPerRow = 3;
-      const rowsPerPage = 4;
+      let x = 10;
+      let y = 10;
+      const qrSize = 28;
+      const horizontalMargin = 5;
+      const rowSpacing = 15;
+      const itemsPerRow = 6;
+      const rowsPerPage = 7;
       const itemsPerPage = itemsPerRow * rowsPerPage;
 
       generatedItems.forEach((item, index) => {
         if (index > 0 && index % itemsPerPage === 0) {
           doc.addPage();
-          x = 15;
-          y = 15;
+          x = 10;
+          y = 10;
         }
 
         const imgData = item.qrImageBase64;
@@ -336,26 +330,26 @@ export default function PrintQrPage() {
         doc.addImage(imgData, "PNG", x, y, qrSize, qrSize);
         
         const centerX = x + (qrSize / 2);
-        const textY = y + qrSize + 5;
+        const textY = y + qrSize + 2; 
         
-        doc.setFontSize(9);
+        doc.setFontSize(6); 
         doc.setFont("helvetica", "bold");
-        doc.text(item.plantName || "Unknown", centerX, textY, { align: "center" });
+        doc.text(item.plantName || "Plant QR", centerX, textY, { align: "center" });
         
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(8);
-        doc.text(`Size: ${item.size || "N/A"}`, centerX, textY + 5, { align: "center" });
+        doc.setFontSize(5);
+        doc.text(`Size: ${item.variantSize || item.size || "N/A"}`, centerX, textY + 2.5, { align: "center" });
         
-        doc.setFontSize(7);
+        doc.setFontSize(4.5);
         doc.setTextColor(100, 100, 100);
-        doc.text(`P-ID: ${item.plantId} | V-ID: ${item.variantId}`, centerX, textY + 9, { align: "center" });
+        doc.text(`P-ID: ${item.plantId} | V-ID: ${item.variantId}`, centerX, textY + 5, { align: "center" });
         doc.setTextColor(0, 0, 0);
 
         if ((index + 1) % itemsPerRow === 0) {
-          x = 15;
+          x = 10;
           y += qrSize + rowSpacing;
         } else {
-          x += qrSize + margin + 10;
+          x += qrSize + horizontalMargin;
         }
       });
 

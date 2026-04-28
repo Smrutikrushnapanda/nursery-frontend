@@ -84,7 +84,7 @@ export function StockFormDialog({
               onVariantChange(e.target.value);
               if (errors.variantId) setErrors(prev => ({ ...prev, variantId: "" }));
             }}
-            disabled={isEdit}
+            disabled={saving || isEdit}
             className={`w-full rounded-xl border px-3 py-2 outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:bg-gray-100 ${errors.variantId ? "border-red-500" : ""}`}
           >
             <option value="">Select variant</option>
@@ -103,6 +103,7 @@ export function StockFormDialog({
             type="number"
             min="0"
             value={form.quantity}
+            disabled={saving}
             onChange={(e) => {
               onInputChange(e);
               if (errors.quantity) setErrors(prev => ({ ...prev, quantity: "" }));
@@ -118,6 +119,7 @@ export function StockFormDialog({
               id="reason"
               name="reason"
               value={form.reason}
+              disabled={saving}
               onChange={(e) => {
                 onInputChange(e);
                 if (errors.reason) setErrors(prev => ({ ...prev, reason: "" }));
@@ -132,6 +134,7 @@ export function StockFormDialog({
               id="reference"
               name="reference"
               value={form.reference}
+              disabled={saving}
               onChange={(e) => {
                 onInputChange(e);
                 if (errors.reference) setErrors(prev => ({ ...prev, reference: "" }));
