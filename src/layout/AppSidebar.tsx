@@ -359,7 +359,7 @@ const AppSidebar: React.FC = () => {
             className={`flex ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
               }`}
           >
-            <Link href="/" className="group relative">
+            <Link href="/dashboard" className="group relative">
               <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-brand-400/20 to-transparent opacity-0 blur transition-opacity group-hover:opacity-100" />
               {isExpanded || isHovered || isMobileOpen ? (
                 <div className="flex items-center gap-2">

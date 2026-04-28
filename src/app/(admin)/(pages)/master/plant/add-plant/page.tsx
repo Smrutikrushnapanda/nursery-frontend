@@ -102,8 +102,6 @@ export default function AddPlantPage() {
 
         const editForm: PlantFormState = {
           name: plant.name ?? "",
-          sku: plant.sku ?? "",
-          price: plant.price?.toString() ?? "",
           description: plant.description ?? "",
           careInstructions: plant.careInstructions ?? "",
           waterRequirement: plant.waterRequirement ?? "",
@@ -177,7 +175,7 @@ export default function AddPlantPage() {
   };
 
   const handleSelectChange = (
-    name: "categoryId" | "subcategoryId" | "petToxicity",
+    name: keyof PlantFormState,
     value: string
   ) => {
     setForm((prev) => ({
@@ -322,7 +320,7 @@ export default function AddPlantPage() {
 
         <CardContent className="relative pt-4">
           <form onSubmit={handleSubmit} className="space-y-5">
-            <PlantTextFields form={form} onChange={handleInputChange} />
+            <PlantTextFields form={form} onChange={handleInputChange} onSelectChange={handleSelectChange} />
             <TemperatureRangeFields
               temperatureMin={form.temperatureMin}
               temperatureMax={form.temperatureMax}
@@ -337,7 +335,12 @@ export default function AddPlantPage() {
               onSelectChange={handleSelectChange}
             />
             <PlantTextareas form={form} onChange={handleInputChange} />
-            <PetToxicityField value={form.petToxicity} onChange={handleSelectChange} />
+            <PetToxicityField
+              toxicityValue={form.petToxicity}
+              noteValue={form.petToxicityNotes}
+              onSelectChange={handleSelectChange}
+              onNoteChange={handleInputChange}
+            />
             <ImageUploadField
               inputRef={imageInputRef}
               imageFiles={imageFiles}

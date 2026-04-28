@@ -428,11 +428,6 @@ export default function PrintQrPage() {
               Download Newly Generated
             </button>
           )}
-
-          <div className="p-2 bg-brand-50 text-brand-600 rounded-lg border border-brand-100 flex items-center gap-2 text-xs font-medium">
-            <Printer className="h-4 w-4" />
-            Filter by category and sub-category for bulk QR generation
-          </div>
         </div>
       </div>
 
