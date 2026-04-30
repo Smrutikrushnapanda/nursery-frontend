@@ -82,7 +82,11 @@ export const authApis = {
     register: async (formData: any) => {
         try {
 
-            const { data } = await api.post("/auth/register", formData);
+            const { data } = await api.post("/auth/register", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data"
+                }
+            });
 
             return data
 
