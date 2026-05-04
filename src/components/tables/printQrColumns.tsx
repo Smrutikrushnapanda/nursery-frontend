@@ -1,5 +1,6 @@
 "use client"
 
+import { toast } from "sonner";
 import { ColumnDef } from "@tanstack/react-table"
 import { QrCode, Download, Loader2 } from "lucide-react"
 import { useState } from "react"
@@ -39,13 +40,13 @@ function PrintQrActions({ row, onGenerated, existingQr }: PrintQrActionsProps) {
 
         setQrData(qrImageBase64)
         onGenerated?.(row.variantId, qrImageBase64)
-        
+
         // Return data so it can be used for immediate download if needed
         return qrImageBase64
       }
     } catch (error: any) {
       console.error(error)
-      alert(error?.message || "Failed to generate QR code")
+      toast.error(error?.message || "Failed to generate QR code")
     } finally {
       setGenerating(false)
     }
@@ -55,7 +56,7 @@ function PrintQrActions({ row, onGenerated, existingQr }: PrintQrActionsProps) {
   const downloadImage = (base64Data: string) => {
     const img = new Image();
     img.src = base64Data;
-    
+
     img.onload = () => {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
@@ -65,7 +66,7 @@ function PrintQrActions({ row, onGenerated, existingQr }: PrintQrActionsProps) {
       const qrSize = img.width || 150; // Fallback to 150 if width not yet ready
       const padding = 20;
       const textAreaHeight = 90; // Height allocated for the 3 lines of text
-      
+
       canvas.width = qrSize + (padding * 2);
       canvas.height = qrSize + textAreaHeight + padding;
 
@@ -79,7 +80,7 @@ function PrintQrActions({ row, onGenerated, existingQr }: PrintQrActionsProps) {
       // Configure text styles
       ctx.fillStyle = "black";
       ctx.textAlign = "center";
-      
+
       const plantName = row.variant?.plant?.name || "Unknown Plant";
       const variantSize = row.variant?.size || "Unknown Size";
       const plantId = row.variant?.plant?.id || "-";
@@ -88,12 +89,12 @@ function PrintQrActions({ row, onGenerated, existingQr }: PrintQrActionsProps) {
       // Line 1: Plant Name (Bold)
       ctx.font = "bold 16px sans-serif";
       ctx.fillText(plantName, canvas.width / 2, qrSize + padding + 25);
-      
+
       // Line 2: Variant Size
       ctx.font = "14px sans-serif";
       ctx.fillStyle = "#374151"; // gray-700
       ctx.fillText(`Size: ${variantSize}`, canvas.width / 2, qrSize + padding + 48);
-      
+
       // Line 3: IDs
       ctx.font = "11px monospace";
       ctx.fillStyle = "#6b7280"; // gray-500
@@ -214,30 +215,30 @@ export function getPrintQrColumns({
       ),
     },
     {
-        id: "status",
-        header: "Status",
-        cell: ({ row }) => (
-          <Badge
-            size="sm"
-            color={
-              getStockStatus(row.original) === "In Stock"
-                ? "success"
-                : getStockStatus(row.original) === "Low Stock"
-                  ? "warning"
-                  : "error"
-            }
-          >
-            {getStockStatus(row.original)}
-          </Badge>
-        ),
-      },
+      id: "status",
+      header: "Status",
+      cell: ({ row }) => (
+        <Badge
+          size="sm"
+          color={
+            getStockStatus(row.original) === "In Stock"
+              ? "success"
+              : getStockStatus(row.original) === "Low Stock"
+                ? "warning"
+                : "error"
+          }
+        >
+          {getStockStatus(row.original)}
+        </Badge>
+      ),
+    },
     {
       id: "actions",
       header: "Action",
       cell: ({ row }) => (
         <div className="flex justify-start">
-          <PrintQrActions 
-            row={row.original} 
+          <PrintQrActions
+            row={row.original}
             existingQr={generatedQrs[row.original.variantId]}
             onGenerated={onGenerated}
           />

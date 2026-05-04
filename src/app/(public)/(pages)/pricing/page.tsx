@@ -1,4 +1,6 @@
 "use client";
+import { toast } from "sonner";
+
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -36,7 +38,7 @@ export default function PricingPage() {
 
   useEffect(() => {
     if (searchParams.get("alert") === "purchase-plan") {
-      alert("Purchase a plan to access the dashboard");
+      toast.info("Purchase a plan to access the dashboard");
       router.replace("/pricing");
     }
   }, [router, searchParams]);

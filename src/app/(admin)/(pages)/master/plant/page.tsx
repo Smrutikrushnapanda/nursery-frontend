@@ -1,4 +1,6 @@
 "use client";
+import { toast } from "sonner";
+
 
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -141,7 +143,7 @@ export default function Page() {
       setDeletingPlant(null);
     } catch (error: any) {
       console.log(error);
-      alert(error?.message || "Failed to delete plant");
+      toast.error(error?.message || "Failed to delete plant");
     } finally {
       setDeleting(false);
     }

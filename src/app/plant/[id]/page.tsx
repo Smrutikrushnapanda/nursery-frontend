@@ -1,4 +1,6 @@
 "use client";
+import { toast } from "sonner";
+
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
@@ -113,7 +115,7 @@ export default function PlantDetailsPage() {
   const handleAddToCart = async (quantity: number, variantId: number | null) => {
     console.log("Add to cart:", { plantId: plant.id, variantId, quantity });
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    alert("Added to cart!");
+    toast.success("Added to cart!");
   };
 
 

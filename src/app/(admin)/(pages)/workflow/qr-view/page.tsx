@@ -1,4 +1,5 @@
-"use client"
+"use client";
+import { toast } from "sonner";
 
 import { useMemo, useState } from "react"
 import { DataTable } from "@/components/tables/DataTable"
@@ -59,7 +60,7 @@ export default function QrViewPage() {
         onDownload: (row) => {
           // Dummy download logic
           console.log("Downloading QR for", row.code)
-          alert(`Downloading QR for ${row.code}`)
+          toast.info(`Downloading QR for ${row.code}`)
         },
       }),
     []
@@ -118,7 +119,7 @@ export default function QrViewPage() {
               </div>
             </div>
 
-            <Button className="w-full" onClick={() => alert("Simulating high-res download...")}>
+            <Button className="w-full" onClick={() => toast.info("Simulating high-res download...")}>
               Download High Resolution
             </Button>
           </div>

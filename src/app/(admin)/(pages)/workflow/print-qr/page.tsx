@@ -1,4 +1,6 @@
 "use client";
+import { toast } from "sonner";
+
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { DashboardDialog } from "@/components/common/DashboardDialog";
@@ -241,12 +243,12 @@ export default function PrintQrPage() {
 
   const handleGenerateBulk = async () => {
     if (!bulkQrForm.categoryId || !bulkQrForm.subcategoryId) {
-      alert("Select both category and sub-category.");
+      toast.warning("Select both category and sub-category.");
       return;
     }
 
     if (bulkQrForm.plantIds.length === 0) {
-      alert("Select at least one plant.");
+      toast.warning("Select at least one plant.");
       return;
     }
 
@@ -292,7 +294,7 @@ export default function PrintQrPage() {
         // No need for alert if we show it in the UI
       }
     } catch (error: any) {
-      alert(error?.message || "Failed to generate bulk QR codes.");
+      toast.error(error?.message || "Failed to generate bulk QR codes.");
     } finally {
       setIsBulkGenerating(false);
     }
@@ -304,7 +306,7 @@ export default function PrintQrPage() {
       const doc = new jsPDF();
       
       if (generatedItems.length === 0) {
-        alert("No generated QR codes found to download.");
+        toast.warning("No generated QR codes found to download.");
         return;
       }
 
@@ -356,7 +358,7 @@ export default function PrintQrPage() {
       doc.save(`bulk-qr-codes-${new Date().getTime()}.pdf`);
     } catch (err) {
       console.error("PDF generation failed:", err);
-      alert("Failed to generate PDF. Please try again.");
+      toast.error("Failed to generate PDF. Please try again.");
     }
   };
 
@@ -374,7 +376,7 @@ export default function PrintQrPage() {
       }
       
       if (itemsToPrint.length === 0) {
-        alert(`No ${mode} QR codes found to download.`);
+        toast.warning(`No ${mode} QR codes found to download.`);
         return;
       }
 
@@ -426,7 +428,7 @@ export default function PrintQrPage() {
       doc.save(`${mode}-qr-codes-${new Date().getTime()}.pdf`);
     } catch (err) {
       console.error("PDF generation failed:", err);
-      alert("Failed to generate PDF. Please try again.");
+      toast.error("Failed to generate PDF. Please try again.");
     }
   };
 

@@ -1,4 +1,5 @@
-"use client"
+"use client";
+import { toast } from "sonner";
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { DataTable } from "@/components/tables/DataTable"
@@ -49,7 +50,7 @@ export default function ScanSellPage() {
         setData(response.data)
       }
     } catch (error: any) {
-      alert(error.message)
+      toast.error(error.message)
       console.error("Failed to fetch scan analytics:", error)
     } finally {
       setIsLoading(false)

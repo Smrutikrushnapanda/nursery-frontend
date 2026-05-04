@@ -1,4 +1,6 @@
 "use client";
+import { toast } from "sonner";
+
 
 import { useEffect, useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -126,7 +128,7 @@ export default function AddPlantPage() {
       }
     } catch (error: any) {
       console.error("Failed to fetch plant:", error);
-      alert(error?.message || "Failed to load plant data");
+      toast.error(error?.message || "Failed to load plant data");
     } finally {
       setPageLoading(false);
     }
@@ -300,7 +302,7 @@ export default function AddPlantPage() {
         const changedFields = buildEditPayload();
 
         if (Object.keys(changedFields).length === 0) {
-          alert("No changes detected");
+          toast.info("No changes detected");
           setLoading(false);
           return;
         }
@@ -324,7 +326,7 @@ export default function AddPlantPage() {
       }
     } catch (error: any) {
       console.log(error);
-      alert(error?.message);
+      toast.error(error?.message);
     } finally {
       setLoading(false);
     }

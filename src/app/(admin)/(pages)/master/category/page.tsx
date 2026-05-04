@@ -1,4 +1,6 @@
 "use client";
+import { toast } from "sonner";
+
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { DashboardConfirmDialog } from "@/components/common/DashboardConfirmDialog";
@@ -126,7 +128,7 @@ export default function Page() {
       setDeletingCategory(null);
     } catch (err: any) {
       console.log(err);
-      alert(err?.message || "Failed to delete category");
+      toast.error(err?.message || "Failed to delete category");
     } finally {
       setDeleting(false);
     }
@@ -147,7 +149,7 @@ export default function Page() {
       resetForm();
     } catch (err: any) {
       console.log(err);
-      alert(err?.message || "Failed to save category");
+      toast.error(err?.message || "Failed to save category");
     } finally {
       setSaving(false);
     }

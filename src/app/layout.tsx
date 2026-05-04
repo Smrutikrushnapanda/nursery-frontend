@@ -3,6 +3,8 @@ import './globals.css';
 import { SidebarProvider } from '@/context/SidebarContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { cn } from "@/lib/utils";
+import { Toaster } from "@/components/ui/sonner";
+import GlobalLoader from "@/src/components/GlobalLoader";
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -14,8 +16,6 @@ export const metadata = {
 const outfit = Outfit({
   subsets: ["latin"],
 });
-
-import GlobalLoader from "@/src/components/GlobalLoader";
 
 export default function RootLayout({
   children,
@@ -29,6 +29,7 @@ export default function RootLayout({
           <SidebarProvider>
             {children}
             <GlobalLoader />
+            <Toaster richColors position="top-right" />
           </SidebarProvider>
         </ThemeProvider>
       </body>

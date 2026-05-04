@@ -1,4 +1,6 @@
 "use client";
+import { toast } from "sonner";
+
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { DashboardDialog } from "@/components/common/DashboardDialog";
@@ -137,7 +139,7 @@ export default function InventoryPage() {
         setStocks(response.data);
       }
     } catch (error: any) {
-      alert(error.message);
+      toast.error(error.message);
       console.log(error);
     } finally {
       setIsPageLoading(false);
@@ -176,7 +178,7 @@ export default function InventoryPage() {
       );
     } catch (error: any) {
       console.log(error);
-      alert(error?.message || "Failed to load plant variants");
+      toast.error(error?.message || "Failed to load plant variants");
     }
   };
 
@@ -268,7 +270,7 @@ export default function InventoryPage() {
       resetDialog();
     } catch (error: any) {
       console.log(error);
-      alert(error?.message || "Failed to save stock");
+      toast.error(error?.message || "Failed to save stock");
     } finally {
       setSaving(false);
     }
@@ -282,7 +284,7 @@ export default function InventoryPage() {
       setDeadStockTarget(null);
     } catch (error: any) {
       console.log(error);
-      alert(error?.message || "Failed to mark dead stock");
+      toast.error(error?.message || "Failed to mark dead stock");
     } finally {
       setSaving(false);
     }
