@@ -1,5 +1,6 @@
-"use client"
+"use client";
 
+import { toast } from "sonner";
 import { ColumnDef } from "@tanstack/react-table"
 import { Download, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -53,7 +54,7 @@ const OrderActions = ({ orderId, hasInvoice }: { orderId: number, hasInvoice: bo
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Download failed", error);
-      alert("Failed to download invoice. Please try again.");
+      toast.error("Failed to download invoice. Please try again.");
     } finally {
       setIsDownloading(false);
     }

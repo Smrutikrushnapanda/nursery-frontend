@@ -1,10 +1,15 @@
 "use client"
 
+import { toast } from "sonner";
 import { ColumnDef } from "@tanstack/react-table"
 import { MoreVertical } from "lucide-react"
 import { useState } from "react"
-import { Dropdown } from "@/components/ui/dropdown/Dropdown"
-import { DropdownItem } from "@/components/ui/dropdown/DropdownItem"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import Badge from "@/components/ui/badge/Badge"
 import { Button } from "@/components/ui/button"
 import { inventoryApis } from "@/utils/api/api"
@@ -63,10 +68,7 @@ function InventoryActions({
   onDeleted: () => void
   onDeadStock: (row: InventoryItem) => void
 }) {
-  const [isOpen, setIsOpen] = useState(false)
-
   const handleDelete = async () => {
-    setIsOpen(false)
     const confirmed = window.confirm(
       `Delete stock for "${row.variant?.plant?.name ?? "this item"}" (${row.variant?.sku ?? row.variantId})?`
     )
@@ -80,57 +82,45 @@ function InventoryActions({
       onDeleted()
     } catch (error: any) {
       console.log(error)
-      alert(error?.message || "Failed to delete stock")
+      toast.error(error?.message || "Failed to delete stock")
     }
   }
 
   return (
-    <div className={`relative flex justify-end ${isOpen ? "z-50" : ""}`}>
-      <Button
-        type="button"
-        size="icon"
-        variant="outline"
-        className="h-8 w-8 rounded-lg dropdown-toggle"
-        onClick={() => setIsOpen(!isOpen)}
-        aria-label="More actions"
-      >
-        <MoreVertical className="h-4 w-4" />
-      </Button>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          type="button"
+          size="icon"
+          variant="outline"
+          className="h-8 w-8 rounded-lg"
+          aria-label="More actions"
+        >
+          <MoreVertical className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
 
-      <Dropdown isOpen={isOpen} onClose={() => setIsOpen(false)} className="w-40 right-0 top-full">
-        <DropdownItem
-          onClick={() => {
-            onView?.(row)
-            setIsOpen(false)
-          }}
-        >
+      <DropdownMenuContent align="end" className="w-40">
+        <DropdownMenuItem onClick={() => onView?.(row)}>
           View
-        </DropdownItem>
-        <DropdownItem
-          onClick={() => {
-            onEdit(row)
-            setIsOpen(false)
-          }}
-        >
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onEdit(row)}>
           Edit
-        </DropdownItem>
-        <DropdownItem
-          onClick={() => {
-            onDeadStock(row)
-            setIsOpen(false)
-          }}
-          className="text-orange-600 hover:text-orange-700"
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => onDeadStock(row)}
+          className="text-orange-600 focus:text-orange-700"
         >
           Mark as Dead
-        </DropdownItem>
-        <DropdownItem
+        </DropdownMenuItem>
+        <DropdownMenuItem
           onClick={handleDelete}
-          className="text-red-600 hover:text-red-700"
+          className="text-red-600 focus:text-red-700"
         >
           Delete
-        </DropdownItem>
-      </Dropdown>
-    </div>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 

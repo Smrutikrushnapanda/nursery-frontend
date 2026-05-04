@@ -46,7 +46,7 @@ const getApiError = (error: any) => {
     };
 
     console.error("API Error context:", context);
-    
+
     // If context is essentially empty, log the raw error too
     if (!context.message && !context.status && !context.url) {
         console.error("Raw API Error:", error);
@@ -884,7 +884,7 @@ export const subscriptionApis = {
         try {
             const headers: any = {};
             if (showLoader) headers['X-Global-Loader'] = 'true';
-            
+
             const { data } = await api.get("/subscriptions/me", {
                 withCredentials: true,
                 headers
@@ -990,6 +990,17 @@ export const billingApis = {
 
             return data
 
+        } catch (error) {
+            throw getApiError(error);
+        }
+    }
+}
+
+export const taxApis = {
+    getTaxes: async () => {
+        try {
+            const { data } = await api.get('/tax', { withCredentials: true })
+            return data
         } catch (error) {
             throw getApiError(error);
         }

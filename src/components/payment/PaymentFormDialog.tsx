@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Plus, Trash2 } from "lucide-react";
-import { billingApis } from "@/utils/api/api";
+import { billingApis, taxApis } from "@/utils/api/api";
 import { FormField } from "@/components/common/FormField";
 
 export interface PaymentFormItem {
@@ -39,7 +39,7 @@ const generateRef = () => {
 };
 
 const initialForm: PaymentFormState = {
-  customerName: "Walk-in Customer",
+  customerName: "",
   customerPhone: "",
   customerEmail: "",
   paymentMethod: "CASH",
@@ -60,6 +60,7 @@ export function PaymentForm({ onSubmit, onCancel, saving }: PaymentFormProps) {
   const [form, setForm] = useState<PaymentFormState>(initialForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [plants, setPlants] = useState<any[]>([]);
+  const [taxes, setTaxes] = useState<any[]>([]);
   const [isLoadingPlants, setIsLoadingPlants] = useState(false);
   const [variantsMap, setVariantsMap] = useState<Record<number, any[]>>({});
   const [loadingVariants, setLoadingVariants] = useState<Record<number, boolean>>({});
@@ -72,7 +73,21 @@ export function PaymentForm({ onSubmit, onCancel, saving }: PaymentFormProps) {
     setErrors({});
     fetchedVariantsRef.current = new Set();
     fetchPlants();
+    fetchTaxes();
   }, []);
+
+  const fetchTaxes = async () => {
+    try {
+      const res = await taxApis.getTaxes();
+      let data: any[] = [];
+      if (Array.isArray(res)) data = res;
+      else if (res && Array.isArray(res.data)) data = res.data;
+      else if (res && res.data && Array.isArray(res.data.data)) data = res.data.data;
+      setTaxes(data.filter((t: any) => t.status === true));
+    } catch (error) {
+      console.error("Failed to fetch taxes:", error);
+    }
+  };
 
   const fetchPlants = async () => {
     setIsLoadingPlants(true);
@@ -195,11 +210,20 @@ export function PaymentForm({ onSubmit, onCancel, saving }: PaymentFormProps) {
     setForm((prev) => ({ ...prev, items: newItems }));
   };
 
-  const totalPrice = form.items.reduce((acc, item) => {
+  const subTotal = form.items.reduce((acc, item) => {
     const qty = Number(item.quantity) || 0;
     const price = Number(item.unitPrice) || 0;
     return acc + qty * price;
   }, 0);
+
+  const taxAmounts = taxes.map((tax) => ({
+    name: tax.taxType,
+    percentage: tax.percentage,
+    amount: (subTotal * tax.percentage) / 100,
+  }));
+
+  const totalTax = taxAmounts.reduce((acc, curr) => acc + curr.amount, 0);
+  const grandTotal = subTotal + totalTax;
 
   return (
     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
@@ -409,12 +433,30 @@ export function PaymentForm({ onSubmit, onCancel, saving }: PaymentFormProps) {
         </div>
 
         {/* Summary and Actions */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-gray-100 dark:border-gray-800">
-          <div className="flex items-center gap-2">
-            <span className="text-gray-500 font-medium">Total Bill Amount:</span>
-            <span className="text-2xl font-bold text-brand-600 dark:text-brand-400">
-              ₹{totalPrice.toLocaleString("en-IN")}
-            </span>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-6 border-t border-gray-100 dark:border-gray-800">
+          <div className="flex flex-col gap-1.5 w-full sm:w-auto">
+            <div className="flex justify-between sm:justify-start items-center gap-8 text-sm">
+              <span className="text-gray-500 font-medium">Subtotal:</span>
+              <span className="font-semibold text-gray-700 dark:text-gray-300">
+                ₹{subTotal.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
+              </span>
+            </div>
+            {taxAmounts.map((tax, i) => (
+              <div key={i} className="flex justify-between sm:justify-start items-center gap-8 text-sm">
+                <span className="text-gray-500 font-medium">
+                  {tax.name} ({tax.percentage}%):
+                </span>
+                <span className="font-semibold text-gray-700 dark:text-gray-300">
+                  ₹{tax.amount.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
+                </span>
+              </div>
+            ))}
+            <div className="flex justify-between sm:justify-start items-center gap-8 mt-1.5 pt-1.5 border-t border-dashed border-gray-200 dark:border-gray-700">
+              <span className="text-gray-700 dark:text-gray-300 font-bold">Total Bill Amount:</span>
+              <span className="text-2xl font-bold text-brand-600 dark:text-brand-400">
+                ₹{grandTotal.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
+              </span>
+            </div>
           </div>
 
           <div className="flex gap-3 w-full sm:w-auto">

@@ -11,6 +11,7 @@ import { Filter, FilterField } from "@/components/common/Filter";
 import { Button } from "@/components/ui/button";
 import { PaymentForm, PaymentFormState } from "@/components/payment/PaymentFormDialog";
 import { CreditCard } from "lucide-react";
+import { toast } from "sonner";
 
 const formatDateValue = (date: string) => {
   const parsedDate = new Date(date);
@@ -71,10 +72,10 @@ export default function PaymentsPage() {
     try {
       const response = await paymentApis.getAllPayments();
       if (response.success) {
-        const data = Array.isArray(response.data?.data) 
-          ? response.data.data 
-          : Array.isArray(response.data) 
-            ? response.data 
+        const data = Array.isArray(response.data?.data)
+          ? response.data.data
+          : Array.isArray(response.data)
+            ? response.data
             : [];
         setPayments(data);
       }
@@ -110,11 +111,12 @@ export default function PaymentsPage() {
       if (response.success) {
         await fetchData();
         setFormKey(prev => prev + 1);
+        toast.success("Success", { description: "Bill processed successfully." });
       } else {
-        alert(response.message || "Failed to process bill");
+        toast.error("Error", { description: response.message || "Failed to process bill." });
       }
     } catch (error: any) {
-      alert(error.message || "An error occurred");
+      toast.error("Error", { description: error.message || "An error occurred." });
     } finally {
       setSaving(false);
     }
@@ -149,19 +151,19 @@ export default function PaymentsPage() {
 
   const handleDownloadExcel = async () => {
     const { utils, writeFile } = await import('xlsx');
-    
+
     if (!payments || payments.length === 0) return;
 
     const worksheet = utils.json_to_sheet(payments.map(p => ({
-       ID: p.id,
-       OrderID: p.orderId,
-       Amount: p.amount,
-       Method: p.method,
-       Status: p.status,
-       Reference: p.referenceNumber || "-",
-       Date: new Date(p.createdAt).toLocaleString()
+      ID: p.id,
+      OrderID: p.orderId,
+      Amount: p.amount,
+      Method: p.method,
+      Status: p.status,
+      Reference: p.referenceNumber || "-",
+      Date: new Date(p.createdAt).toLocaleString()
     })));
-    
+
     const workbook = utils.book_new();
     utils.book_append_sheet(workbook, worksheet, "Payments");
     writeFile(workbook, `payments_master_${new Date().getTime()}.xlsx`);

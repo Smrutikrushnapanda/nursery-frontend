@@ -52,6 +52,8 @@ export default function SignUpForm() {
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+  const [isCategoriesLoading, setIsCategoriesLoading] = useState(false);
+  const [isSubcategoriesLoading, setIsSubcategoriesLoading] = useState(false);
 
   const formValidation = () => {
     const newErrors: { [key: string]: string } = {};
@@ -82,7 +84,7 @@ export default function SignUpForm() {
   };
 
   const getBusinessAndCategories = async () => {
-    setLoading(true);
+    setIsCategoriesLoading(true);
     try {
       const [businessTypesData, categoriesData] = await Promise.all([getBusinessTypes(), getCategories()]);
       setBusinessTypes(businessTypesData.data);
@@ -90,12 +92,13 @@ export default function SignUpForm() {
     } catch (err) {
       console.error("Error fetching data", err);
     } finally {
-      setLoading(false);
+      setIsCategoriesLoading(false);
     }
   };
 
   const fetchSubCategories = async () => {
     if (!formData.categoryId) return;
+    setIsSubcategoriesLoading(true);
     try {
       const response = await getSubCategories(Number(formData.categoryId));
       const mapped = response?.data?.map((sc: any) => ({
@@ -105,6 +108,8 @@ export default function SignUpForm() {
       setSubcategoriesOptions(mapped);
     } catch (error: any) {
       console.error(error.message);
+    } finally {
+      setIsSubcategoriesLoading(false);
     }
   };
 
@@ -205,17 +210,8 @@ export default function SignUpForm() {
     visible: { opacity: 1, x: 0 },
   };
 
-  if (!Array.isArray(businessTypes) || !Array.isArray(categories) || businessTypes.length === 0 || categories.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px]">
-        <Loader2 className="w-10 h-10 animate-spin text-brand-500 mb-4" />
-        <p className="text-gray-500 font-medium animate-pulse text-center">Preparing registration form...</p>
-      </div>
-    );
-  }
-
-  const businessOptions = businessTypes.map((bt: any) => ({ value: bt.id.toString(), label: bt.name }));
-  const categoryOptions = categories.map((c: any) => ({ value: c.id.toString(), label: c.name }));
+  const businessOptions = (businessTypes || []).map((bt: any) => ({ value: bt.id.toString(), label: bt.name }));
+  const categoryOptions = (categories || []).map((c: any) => ({ value: c.id.toString(), label: c.name }));
 
   return (
     <div className="w-full">
@@ -387,7 +383,7 @@ export default function SignUpForm() {
               <div className="relative group">
                 <Select
                   options={categoryOptions}
-                  placeholder="Select Category"
+                  placeholder={isCategoriesLoading ? "Loading..." : "Select Category"}
                   onChange={(val) => handleSelectChange("categoryId", val)}
                   value={formData.categoryId}
                   className={errors.categoryId ? "border-red-500 h-12" : "h-12 bg-gray-50/50 dark:bg-gray-900/50"}
@@ -410,7 +406,7 @@ export default function SignUpForm() {
                 <div className="relative group">
                   <Select
                     options={subcategoriesOptions}
-                    placeholder="Select Subcategory"
+                    placeholder={isSubcategoriesLoading ? "Loading..." : "Select Subcategory"}
                     onChange={(val) => handleSelectChange("subcategoryId", val)}
                     value={formData.subcategoryId}
                     className={errors.subcategoryId ? "border-red-500 h-12" : "h-12 bg-gray-50/50 dark:bg-gray-900/50"}

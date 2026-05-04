@@ -1,4 +1,6 @@
 "use client";
+import { toast } from "sonner";
+
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
@@ -121,7 +123,7 @@ export default function Page() {
       setPlants(rawPlants.map(normalizePlantOption).filter((item) => item.id > 0));
     } catch (err: any) {
       console.log(err);
-      alert(err?.message || "Failed to load plants");
+      toast.error(err?.message || "Failed to load plants");
     }
   };
 
@@ -160,7 +162,7 @@ export default function Page() {
       setDeletingVariant(null);
     } catch (err: any) {
       console.log(err);
-      alert(err?.message || "Failed to delete plant variant");
+      toast.error(err?.message || "Failed to delete plant variant");
     } finally {
       setDeleting(false);
     }
@@ -183,7 +185,7 @@ export default function Page() {
       resetForm();
     } catch (err: any) {
       console.log(err);
-      alert(err?.message || "Failed to save plant variant");
+      toast.error(err?.message || "Failed to save plant variant");
     } finally {
       setSaving(false);
     }
