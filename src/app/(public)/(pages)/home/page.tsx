@@ -205,7 +205,7 @@ function Features() {
       className="features-section-wrapper"
       cursorContent={
         <div className="w-[88px] h-[88px] bg-brand-600/70 backdrop-blur-md text-white rounded-full flex items-center justify-center font-outfit font-bold text-[13px] shadow-2xl tracking-widest border border-white/20 shadow-brand-600/30">
-          DISCOVER
+          EXPLORE
         </div>
       }
     >
